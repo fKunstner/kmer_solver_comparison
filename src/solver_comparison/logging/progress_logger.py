@@ -12,9 +12,9 @@ class ExperimentProgressLogger:
         self.timelogger = RateLimitedLogger(time_interval=log_every)
         self.start_time = time.perf_counter()
 
-    def tick(self, max_iter: int, current_iter: int, snapshot: Optional[Snapshot]):
-        i = current_iter
-        progress = current_iter / max_iter
+    def tick(self, max_iter: int, curr_iter: int, snapshot: Optional[Snapshot]):
+        i = curr_iter
+        progress = curr_iter / max_iter
         i_width = len(str(max_iter))
         iter_str = f"Iter {i: >{i_width}}/{max_iter}"
 

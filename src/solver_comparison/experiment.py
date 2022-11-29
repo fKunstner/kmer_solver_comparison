@@ -2,8 +2,11 @@ import base64
 import hashlib
 import logging
 import os
+import time
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Tuple
+
+import numpy as np
 
 from solver_comparison.logging.datalogger import DataLogger
 from solver_comparison.logging.expfiles import exp_filepaths
@@ -33,8 +36,17 @@ class Experiment(Serializable):
         """A unique name that can be used to check for equivalence."""
         return base64.b32encode(self.as_str().encode("ascii")).decode("ascii")
 
-    def _startup(self):
-        self.datalogger = DataLogger(exp_id=self.hash(), exp_conf=self.as_dict())
+    def has_already_run(self):
+        conf_file, data_file, summary_file = exp_filepaths(self.hash())
+        return (
+            os.path.isfile(conf_file)
+            and os.path.isfile(data_file)
+            and os.path.isfile(summary_file)
+        )
+
+    def _startup(self) -> Tuple[Snapshot, DataLogger]:
+        """Loads the model, initialize parameters, create the datalogger."""
+        datalogger = DataLogger(exp_id=self.hash(), exp_conf=self.as_dict())
 
         logger = logging.getLogger(__name__)
         logger.info("Initializing problem")
@@ -42,32 +54,50 @@ class Experiment(Serializable):
         with runtime() as loading_time:
             model = self.prob.load_model()
 
-        self.datalogger.log({"model_load_time": loading_time.time})
+        datalogger.log({"model_load_time": loading_time.time})
         logger.info(f"Problem initialized in {loading_time.time:.2f}s")
-        p = self.init.initialize_model(model)
-        return Snapshot(model=model, param=p)
 
-    @staticmethod
-    def dummy_callback(*args, **kwargs):
-        pass
+        p = self.init.initialize_model(model)
+        return Snapshot(model=model, param=p), datalogger
 
     def run(self):
-        curr_p = self._startup()
+        curr_p, datalogger = self._startup()
 
+        start_time = time.perf_counter()
         progress_logger = ExperimentProgressLogger()
 
         def progress_callback(
-            snapshot: Snapshot, curr_iter: int, max_iter: int, other: Dict[str, Any]
+            snapshot: Snapshot,
+            curr_iter: int,
+            max_iter: int,
+            other: Optional[Dict[str, Any]] = None,
         ):
+            curr_time = time.perf_counter()
             progress_logger.tick(
-                max_iter=max_iter, current_iter=curr_iter, snapshot=snapshot
+                max_iter=max_iter, curr_iter=curr_iter, snapshot=snapshot
             )
 
-        curr_p, t, saved_parameters = self.opt.run(
-            curr_p, progress_callback, self.datalogger
-        )
+            p, g = snapshot.p(), snapshot.g()
+            datalogger.log(
+                {
+                    "time": curr_time - start_time,
+                    "f": curr_p.f(),
+                    "|g|_1": np.linalg.norm(g, ord=1),
+                    "|g|_2": np.linalg.norm(g, ord=2),
+                    "|g|_inf": np.linalg.norm(g, ord=np.inf),
+                    "|p|_1": np.linalg.norm(p, ord=1),
+                    "|p|_2": np.linalg.norm(p, ord=2),
+                    "|p|_inf": np.linalg.norm(p, ord=np.inf),
+                }
+            )
 
-        self.datalogger.summary(
+            if other is not None:
+                datalogger.log(other)
+            datalogger.end_step()
+
+        curr_p, t, saved_parameters = self.opt.run(curr_p, progress_callback)
+
+        datalogger.summary(
             {
                 "x": curr_p.model.probabilities(curr_p.param).tolist(),
                 "loss_records": curr_p.f(),
@@ -76,12 +106,4 @@ class Experiment(Serializable):
                 "xs": saved_parameters.get(),
             }
         )
-        self.datalogger.save()
-
-    def has_already_run(self):
-        conf_file, data_file, summary_file = exp_filepaths(self.hash())
-        return (
-            os.path.isfile(conf_file)
-            and os.path.isfile(data_file)
-            and os.path.isfile(summary_file)
-        )
+        datalogger.save()
