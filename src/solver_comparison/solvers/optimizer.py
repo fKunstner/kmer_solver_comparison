@@ -10,7 +10,7 @@ from numpy.typing import NDArray
 from scipy import optimize
 from scipy.special import softmax
 from solver_comparison.logging.datalogger import DataLogger
-from solver_comparison.logging.sequencesummary import OnlineSequenceSummary
+from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
 from solver_comparison.logging.utils import runtime
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.serialization import Serializable

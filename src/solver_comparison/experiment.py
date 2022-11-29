@@ -2,16 +2,13 @@ import base64
 import hashlib
 import logging
 import os
-import time
 from dataclasses import dataclass
-from typing import Callable, Optional
-
-import numpy as np
+from typing import Any, Dict
 
 from solver_comparison.logging.datalogger import DataLogger
 from solver_comparison.logging.expfiles import exp_filepaths
-from solver_comparison.logging.ratelimitedlogger import RateLimitedLogger
-from solver_comparison.logging.utils import runtime, seconds_to_human_readable
+from solver_comparison.logging.progress_logger import ExperimentProgressLogger
+from solver_comparison.logging.utils import runtime
 from solver_comparison.problem.problem import Problem
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.serialization import Serializable
@@ -54,16 +51,17 @@ class Experiment(Serializable):
     def dummy_callback(*args, **kwargs):
         pass
 
-    def run(
-        self,
-        progress_callback: Optional[
-            Callable[[int, float, Optional[Snapshot]], None]
-        ] = None,
-    ):
+    def run(self):
         curr_p = self._startup()
 
-        if progress_callback is None:
-            progress_callback = ExperimentMonitor().callback
+        progress_logger = ExperimentProgressLogger()
+
+        def progress_callback(
+            snapshot: Snapshot, curr_iter: int, max_iter: int, other: Dict[str, Any]
+        ):
+            progress_logger.tick(
+                max_iter=max_iter, current_iter=curr_iter, snapshot=snapshot
+            )
 
         curr_p, t, saved_parameters = self.opt.run(
             curr_p, progress_callback, self.datalogger
@@ -87,35 +85,3 @@ class Experiment(Serializable):
             and os.path.isfile(data_file)
             and os.path.isfile(summary_file)
         )
-
-
-class ExperimentMonitor:
-    def __init__(self, log_every: int = 3):
-        self.timelogger = RateLimitedLogger(time_interval=log_every)
-        self.start_time = time.perf_counter()
-
-    def callback(self, max_iter: int, progress: float, snap: Optional[Snapshot]):
-        i = int(max_iter * progress)
-        i_width = len(str(max_iter))
-        iter_str = f"Iter {i: >{i_width}}/{max_iter}"
-
-        time_str = ""
-        if self.start_time is not None:
-            run_s = time.perf_counter() - self.start_time
-            run_h = seconds_to_human_readable(run_s)
-
-            eta_h, rem_h = "?", "?"
-            if progress > 0:
-                eta_s = run_s / progress
-                rem_s = eta_s - run_s
-                eta_h = seconds_to_human_readable(eta_s)
-                rem_h = seconds_to_human_readable(rem_s)
-
-            time_str = f"{run_h:>3}/{eta_h:>3} ({rem_h:>3} rem.)"
-
-        data_str = ""
-        if snap is not None:
-            f, g = snap.f(), snap.g()
-            data_str = f"Loss={f:.2e}  gnorm={np.linalg.norm(g):.2e}"
-
-        self.timelogger.log(f"{iter_str } [{time_str:>18}] - {data_str}")
