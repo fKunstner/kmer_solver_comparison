@@ -5,6 +5,7 @@ import urllib.request
 from pathlib import Path
 
 import sample_genome_data
+from solver_comparison.kmerexpr import kmerexpr_data_path
 
 fsa_urls = {
     "test5.fsa": "https://raw.githubusercontent.com/bob-carpenter/kmers/be5d806b928253cbc94d58e59fa2378d79c97d00/data/test5.fsa"
@@ -15,7 +16,7 @@ fna_gz_urls = {
 
 
 if __name__ == "__main__":
-    kmers_data_path = Path(sample_genome_data.__file__).parents[0] / "data"
+    kmers_data_path = kmerexpr_data_path()
     Path(kmers_data_path).mkdir(parents=True, exist_ok=True)
 
     print(f"Saving data in {kmers_data_path}")
