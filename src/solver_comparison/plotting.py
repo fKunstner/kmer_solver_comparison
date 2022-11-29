@@ -10,7 +10,7 @@ from utils import Model_Parameters, get_plot_title, load_lengths
 from plotting import plot_error_vs_iterations, plot_scatter
 from solver_comparison import config
 from solver_comparison.experiment import Experiment
-from solver_comparison.log import exp_filepaths
+from solver_comparison.logging.expfiles import exp_filepaths
 
 
 def plot_against_ground_truth(dict_simulation):

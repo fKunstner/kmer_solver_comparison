@@ -3,12 +3,12 @@ from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
-from solver_comparison.expconf import ExpConf
 from solver_comparison.problem.model import KmerModel
+from solver_comparison.serialization import Serializable
 
 
 @dataclass
-class Initializer(ExpConf):
+class Initializer(Serializable):
     _METHOD_TYPE = Literal["simplex_uniform", "zero"]
     method: _METHOD_TYPE = "simplex_uniform"
 

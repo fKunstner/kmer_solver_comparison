@@ -3,14 +3,14 @@ from dataclasses import dataclass, field
 import simulate_reads as sr
 import transcriptome_reader as tr
 from rna_seq_reader import reads_to_y
-from solver_comparison.expconf import ExpConf
 from solver_comparison.problem.model import KmerModel, KmerModelName, model_classes
+from solver_comparison.serialization import Serializable
 from utils import Problem as KmerExprProblem
 from utils import load_lengths, load_simulation_parameters
 
 
 @dataclass
-class Problem(ExpConf):
+class Problem(Serializable):
     """Wrapper around the datasets and model in kmerexpr.
 
     Args:

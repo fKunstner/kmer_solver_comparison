@@ -1,5 +1,5 @@
 import pytest
-from solver_comparison.log import OnlineSequenceSummary
+from solver_comparison.logging.sequencesummary import OnlineSequenceSummary
 
 testdata = [
     (1, range(1), [0]),

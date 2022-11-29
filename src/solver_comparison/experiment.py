@@ -8,23 +8,19 @@ from typing import Callable, Optional
 
 import numpy as np
 
-from solver_comparison.expconf import ExpConf
-from solver_comparison.log import (
-    DataLogger,
-    OnlineSequenceSummary,
-    RateLimitedLogger,
-    exp_filepaths,
-    runtime,
-    seconds_to_human_readable,
-)
+from solver_comparison.logging.datalogger import DataLogger
+from solver_comparison.logging.expfiles import exp_filepaths
+from solver_comparison.logging.ratelimitedlogger import RateLimitedLogger
+from solver_comparison.logging.utils import runtime, seconds_to_human_readable
 from solver_comparison.problem.problem import Problem
 from solver_comparison.problem.snapshot import Snapshot
+from solver_comparison.serialization import Serializable
 from solver_comparison.solvers.initializer import Initializer
 from solver_comparison.solvers.optimizer import Optimizer
 
 
 @dataclass
-class Experiment(ExpConf):
+class Experiment(Serializable):
     prob: Problem
     opt: Optimizer
     init: Initializer

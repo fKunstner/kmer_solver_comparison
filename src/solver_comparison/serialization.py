@@ -12,7 +12,7 @@ def str_to_dict(some_str):
 
 
 @dataclass
-class ExpConf:
+class Serializable:
     """Base class for serialization needed to save configuration objects.
 
     Add to a dataclass to benefit from the automated definitions of __init__,
@@ -47,7 +47,7 @@ class ExpConf:
             Returns:
                 A simple structure representing the object
             """
-            if isinstance(obj, ExpConf) and is_dataclass(obj):
+            if isinstance(obj, Serializable) and is_dataclass(obj):
                 return {
                     f.name: _serialize(getattr(obj, f.name))
                     for f in fields(obj)
@@ -66,7 +66,7 @@ class ExpConf:
 
     @classmethod
     def from_dict(cls, some_dict):
-        if not is_dataclass(cls) or not issubclass(cls, ExpConf):
+        if not is_dataclass(cls) or not issubclass(cls, Serializable):
             raise TypeError(
                 "from_dict() should be called on Serializable dataclass instances"
             )
@@ -74,7 +74,7 @@ class ExpConf:
             **{
                 f.name: (
                     f.type(**some_dict[f.name])
-                    if issubclass(f.type, ExpConf)
+                    if issubclass(f.type, Serializable)
                     else some_dict[f.name]
                 )
                 for f in fields(cls)

@@ -67,11 +67,9 @@ Main files/concepts:
 **Benchmarking/Running**
 - [`Experiment`](src/solver_comparison/experiment.py): Wraps a `Problem`, `Initializer`, `Optimizer`.  
   Runs an experiment and logs the results with some help 
-- from other functions in [`log.py`](src/solver_comparison/log.py) (format to log) 
-  and [`config.py`](src/solver_comparison/config.py) (where to log)
 
-**Data logging**
-- [`GlobalLogger.DataLogger`](src/solver_comparison/log.py): 
+- **Data logging**
+- [`GlobalLogger.DataLogger`](src/solver_comparison/logging/datalogger.py): 
   Saving arbitrary data to a `.csv` depending on the experiment hash. 
 
 **Missing** 

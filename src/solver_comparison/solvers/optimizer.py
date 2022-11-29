@@ -9,13 +9,15 @@ from exp_grad_solver import exp_grad_solver
 from numpy.typing import NDArray
 from scipy import optimize
 from scipy.special import softmax
-from solver_comparison.expconf import ExpConf
-from solver_comparison.log import DataLogger, OnlineSequenceSummary, runtime
+from solver_comparison.logging.datalogger import DataLogger
+from solver_comparison.logging.sequencesummary import OnlineSequenceSummary
+from solver_comparison.logging.utils import runtime
 from solver_comparison.problem.snapshot import Snapshot
+from solver_comparison.serialization import Serializable
 
 
 @dataclass
-class Optimizer(ABC, ExpConf):
+class Optimizer(ABC, Serializable):
     """Base class for optimizers."""
 
     max_iter: int = 100
