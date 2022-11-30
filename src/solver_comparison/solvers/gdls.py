@@ -57,7 +57,7 @@ class GDLS(Optimizer):
             old_p = curr_p
             curr_p, to_log = self.step(curr_p)
 
-            progress_callback(curr_p, t, self.max_iter, to_log)
+            progress_callback(curr_p, to_log)
 
             saved_parameters.update(curr_p.param)
 

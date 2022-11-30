@@ -63,18 +63,25 @@ class Experiment(Serializable):
     def run(self):
         curr_p, datalogger = self._startup()
 
+        model = curr_p.model
+
         start_time = time.perf_counter()
         progress_logger = ExperimentProgressLogger()
 
+        iter = 0
+
         def progress_callback(
-            snapshot: Snapshot,
-            curr_iter: int,
-            max_iter: int,
+            x: Union[Snapshot, NDArray],
             other: Optional[Dict[str, Any]] = None,
         ):
             curr_time = time.perf_counter()
+
+            nonlocal iter
+            iter += 1
+
+            snapshot = x if isinstance(x, Snapshot) else Snapshot(x, model)
             progress_logger.tick(
-                max_iter=max_iter, curr_iter=curr_iter, snapshot=snapshot
+                max_iter=self.opt.max_iter, curr_iter=iter, snapshot=snapshot
             )
 
             p, g = snapshot.p(), snapshot.g()

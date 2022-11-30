@@ -8,7 +8,7 @@ from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.serialization import Serializable
 
-CallbackFunction = Callable[[Snapshot, int, int, Optional[Dict[str, Any]]], None]
+CallbackFunction = Callable[[Union[Snapshot, NDArray], Optional[Dict[str, Any]]], None]
 
 
 @dataclass

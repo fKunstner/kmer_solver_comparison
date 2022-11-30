@@ -28,14 +28,8 @@ class LBFGS(Optimizer):
 
         xs_summary = OnlineSequenceSummary(n=20)
 
-        lbfgs_iter_counter = 0
-
         def lbfgs_callback(x: NDArray):
-            nonlocal lbfgs_iter_counter
-            lbfgs_iter_counter += 1
-            progress_callback(
-                Snapshot(model, x), lbfgs_iter_counter, self.max_iter, None
-            )
+            progress_callback(Snapshot(model, x), None)
             xs_summary.update(softmax(x))
 
         def func(theta):
