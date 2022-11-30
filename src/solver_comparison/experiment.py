@@ -69,6 +69,7 @@ class Experiment(Serializable):
         progress_logger = ExperimentProgressLogger()
 
         iter = 0
+        max_iter = self.opt.max_iter
 
         def progress_callback(
             x: Union[Snapshot, NDArray],
@@ -80,15 +81,13 @@ class Experiment(Serializable):
             iter += 1
 
             snapshot = x if isinstance(x, Snapshot) else Snapshot(x, model)
-            progress_logger.tick(
-                max_iter=self.opt.max_iter, curr_iter=iter, snapshot=snapshot
-            )
+            progress_logger.tick(max_iter=max_iter, curr_iter=iter, snapshot=snapshot)
 
-            p, g = snapshot.p(), snapshot.g()
+            p, g, f = snapshot.pfg()
             datalogger.log(
                 {
                     "time": curr_time - start_time,
-                    "f": curr_p.f(),
+                    "f": f,
                     "|g|_1": np.linalg.norm(g, ord=1),
                     "|g|_2": np.linalg.norm(g, ord=2),
                     "|g|_inf": np.linalg.norm(g, ord=np.inf),
@@ -97,7 +96,6 @@ class Experiment(Serializable):
                     "|p|_inf": np.linalg.norm(p, ord=np.inf),
                 }
             )
-
             if other is not None:
                 datalogger.log(other)
             datalogger.end_step()
