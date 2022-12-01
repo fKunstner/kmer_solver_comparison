@@ -5,18 +5,13 @@ Benchmarking optimizers for
 
 ## Installation 
 
-1. The library assumes `kmerexpr` is installed. 
-    If this is not yet the case, either 
-    - clone the repository and install it in editable mode with `-e` if working on `kmerexpr`)
-        ```
-        git clone https://github.com/bob-carpenter/kmers
-        cd kmers 
-        pip install -e . 
-        ```
-    - Install it directly from git 
-        ```
-        pip install git+https://github.com/bob-carpenter/kmers
-        ```
+1. The library assumes `kmerexpr` is installed _in editable mode_.
+    ```
+    git clone https://github.com/bob-carpenter/kmers
+    cd kmers 
+    pip install -e . 
+    ```
+    (we need to install it in editable mode to access the datasets)
 2. To install this library and have access to the scripts, 
     ```
     git clone https://github.com/fKunstner/kmer_solver_comparison
@@ -38,10 +33,9 @@ This behavior can be modified by setting the environment variable
   set KMEREXPR_BENCH_DATA_ROOT=C:\User\user\path\to\data\root
   ```
 
-
 ## Usage
 
-
+See `/scripts`
 
 ## Extending the library
 
@@ -51,14 +45,14 @@ Main files/concepts:
 - [`Model`](src/solver_comparison/problem/model.py) 
   Definition of the loss function and gradient given a dataset.  
   Wraps the code in
-  [`multinomial_model`](../multinomial_model.py),
-  [`multinomial_simplex_model`](../multinomial_simplex_model.py) 
-  and [`normal_model`](../normal_model.py).
+- [`multinomial_model`](https://github.com/bob-carpenter/kmers/blob/main/kmerexpr/multinomial_model.py),
+  [`multinomial_simplex_model`](https://github.com/bob-carpenter/kmers/blob/main/kmerexpr/multinomial_simplex_model.py) 
+  and [`normal_model`](https://github.com/bob-carpenter/kmers/blob/main/kmerexpr/normal_model.py).
 - [`Problem`](src/solver_comparison/problem/problem.py): Combination of a `Model` and a dataset.   
   Wraps the code in
-  [`simulate_reads`](../simulate_reads.py) 
-  [`transcriptome_reader`](../transcriptome_reader.py) 
-  [`rna_seq_reader`](../rna_seq_reader.py) 
+  [`simulate_reads`](https://github.com/bob-carpenter/kmers/blob/main/kmerexpr/simulate_reads.py) 
+  [`transcriptome_reader`](https://github.com/bob-carpenter/kmers/blob/main/kmerexpr/transcriptome_reader.py) 
+  [`rna_seq_reader`](https://github.com/bob-carpenter/kmers/blob/main/kmerexpr/rna_seq_reader.py) 
 
 **Solvers**
 - [`Initializer`](src/solver_comparison/solvers/initializer.py): Initialization strategies
