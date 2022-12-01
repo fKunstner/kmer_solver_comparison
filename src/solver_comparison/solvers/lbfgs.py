@@ -4,6 +4,7 @@ from typing import ClassVar
 from numpy.typing import NDArray
 from scipy import optimize
 from scipy.special import softmax
+
 from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer

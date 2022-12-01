@@ -3,6 +3,7 @@ from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
+
 from solver_comparison.problem.model import KmerModel
 from solver_comparison.serialization import Serializable
 

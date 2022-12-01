@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Tuple
 
 from numpy.typing import NDArray
+
 from solver_comparison.problem.model import KmerModel
 
 

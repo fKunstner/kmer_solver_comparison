@@ -4,6 +4,7 @@ from typing import Any, ClassVar, Dict, List, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
+
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer
 
@@ -24,7 +25,7 @@ class GDLS(Optimizer):
     """
 
     c: float = 0.5
-    max: float = 10 ** 10
+    max: float = 10**10
     decr: float = 0.5
     incr: float = 1.0
     max_iter: int = 100

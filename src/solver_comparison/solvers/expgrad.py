@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 from kmerexpr.exp_grad_solver import exp_grad_solver
+
 from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer

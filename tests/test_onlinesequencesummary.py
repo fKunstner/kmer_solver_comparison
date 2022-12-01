@@ -1,4 +1,5 @@
 import pytest
+
 from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
 
 testdata = [

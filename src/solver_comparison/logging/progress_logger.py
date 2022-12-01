@@ -2,6 +2,7 @@ import time
 from typing import Optional
 
 import numpy as np
+
 from solver_comparison.logging.rate_limited_logger import RateLimitedLogger
 from solver_comparison.logging.utils import seconds_to_human_readable
 from solver_comparison.problem.snapshot import Snapshot

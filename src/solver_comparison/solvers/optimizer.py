@@ -4,6 +4,7 @@ from typing import Any, Callable, ClassVar, Dict, Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
+
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.serialization import Serializable
 
@@ -15,9 +16,9 @@ class Optimizer(ABC, Serializable):
     """Base class for optimizers."""
 
     max_iter: int = 100
-    p_tol: float = 10 ** -16
-    g_tol: float = 10 ** -16
-    f_tol: float = 10 ** -16
+    p_tol: float = 10**-16
+    g_tol: float = 10**-16
+    f_tol: float = 10**-16
     iter: int = field(init=False)
     solver_name: ClassVar[str] = "generic_optimizer"
 

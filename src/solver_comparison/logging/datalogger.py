@@ -4,6 +4,7 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
+
 from solver_comparison import config
 from solver_comparison.logging.expfiles import exp_filepaths
 
