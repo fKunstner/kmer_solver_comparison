@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Callable, ClassVar, Dict, Optional, Tuple
+from typing import Any, Callable, ClassVar, Dict, Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
-from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.serialization import Serializable
 
@@ -16,18 +15,14 @@ class Optimizer(ABC, Serializable):
     """Base class for optimizers."""
 
     max_iter: int = 100
-    p_tol: float = 10**-16
-    g_tol: float = 10**-16
-    f_tol: float = 10**-16
+    p_tol: float = 10 ** -16
+    g_tol: float = 10 ** -16
+    f_tol: float = 10 ** -16
     iter: int = field(init=False)
     solver_name: ClassVar[str] = "generic_optimizer"
 
     def __post_init__(self):
         self.iter = 0
-
-    @abstractmethod
-    def step(self, current: Snapshot) -> Snapshot:
-        pass
 
     def should_stop(self, curr_p: Snapshot, old_p: Snapshot):
         df, dp, dg = (
@@ -41,9 +36,10 @@ class Optimizer(ABC, Serializable):
         g_check = np.linalg.norm(dg) ** 2 <= self.g_tol
         return any([i_check, f_check, p_check, g_check])
 
+    @abstractmethod
     def run(
         self,
         curr_p: Snapshot,
         progress_callback: CallbackFunction,
-    ) -> Tuple[Snapshot, int, OnlineSequenceSummary]:
+    ) -> Snapshot:
         raise NotImplementedError

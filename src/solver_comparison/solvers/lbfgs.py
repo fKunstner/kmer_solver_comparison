@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import ClassVar, Tuple
+from typing import ClassVar
 
 from numpy.typing import NDArray
 from scipy import optimize
@@ -22,7 +22,7 @@ class LBFGS(Optimizer):
         self,
         curr_p: Snapshot,
         progress_callback: CallbackFunction,
-    ) -> Tuple[Snapshot, int, OnlineSequenceSummary]:
+    ) -> Snapshot:
 
         model, param = curr_p.model, curr_p.param
 
@@ -63,4 +63,4 @@ class LBFGS(Optimizer):
                 dict_flags_convergence["task"],
             )
 
-        return Snapshot(model, theta_sol), dict_flags_convergence["nit"], xs_summary
+        return Snapshot(model, theta_sol)

@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
 
-import simulate_reads as sr
-import transcriptome_reader as tr
-from rna_seq_reader import reads_to_y
+from kmerexpr import simulate_reads as sr
+from kmerexpr import transcriptome_reader as tr
+from kmerexpr.rna_seq_reader import reads_to_y
+from kmerexpr.utils import Problem as KmerExprProblem
+from kmerexpr.utils import load_lengths, load_simulation_parameters
 from solver_comparison.problem.model import KmerModel, KmerModelName, model_classes
 from solver_comparison.serialization import Serializable
-from utils import Problem as KmerExprProblem
-from utils import load_lengths, load_simulation_parameters
 
 
 @dataclass

@@ -4,10 +4,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from simulate_reads import length_adjustment_inverse
-from utils import Model_Parameters, get_plot_title, load_lengths
 
-from plotting import plot_error_vs_iterations, plot_scatter
+from kmerexpr.plotting import plot_error_vs_iterations, plot_scatter
+from kmerexpr.simulate_reads import length_adjustment_inverse
+from kmerexpr.utils import Model_Parameters, get_plot_title, load_lengths
 from solver_comparison import config
 from solver_comparison.experiment import Experiment
 from solver_comparison.logging.expfiles import exp_filepaths
@@ -39,9 +39,9 @@ def make_individual_exp_plots(exp: Experiment):
     )
 
     # This is a hacky workaround.
-    """Model_Parameters is used in KmerExpr to define the optimizer to use 
+    """Model_Parameters is used in KmerExpr to define the optimizer to use
     and define its name for plotting. If the solver_name is unknown, it defaults
-    to exp_grad. We're trying to use the plotting code without modifying it, 
+    to exp_grad. We're trying to use the plotting code without modifying it,
     but need but we need to set our optimizers name"""
     model_parameters.solver_name = exp.opt.solver_name
 
@@ -52,7 +52,7 @@ def make_individual_exp_plots(exp: Experiment):
 
     base_title = get_plot_title(problem, model_parameters)
 
-    ## Plotting and checking against ground truth
+    # Plotting and checking against ground truth
     dict_simulation = exp.prob.load_simulation_parameters()
     theta_true = dict_simulation["theta_true"]
     psi_true = dict_simulation["psi"]

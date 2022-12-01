@@ -2,6 +2,6 @@ from pathlib import Path
 
 
 def kmerexpr_data_path():
-    import sample_genome_data
+    from kmerexpr import sample_genome_data
 
     return Path(sample_genome_data.__file__).parents[0] / "data"

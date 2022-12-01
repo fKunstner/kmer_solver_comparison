@@ -21,9 +21,6 @@ class RateLimitedLogger:
         self.time_interval = time_interval
         self.call_interval = call_interval
 
-    def _log(self, *args, **kwargs):
-        logging.getLogger(__name__).info(*args, **kwargs)
-
     def _should_log(self) -> bool:
         def _never_logged():
             return self.last_log is None
@@ -43,7 +40,7 @@ class RateLimitedLogger:
     def log(self, *args, **kwargs):
         """Might pass the arguments to ``getlogger(__name__).log``."""
         if self._should_log():
-            self._log(*args, **kwargs)
+            logging.getLogger(__name__).info(*args, **kwargs)
             self.last_log = time.perf_counter()
             self.ignored_calls = 0
         else:

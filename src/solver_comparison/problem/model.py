@@ -1,7 +1,7 @@
 from typing import Dict, Literal, Type, Union, get_args
 
-from multinomial_model import multinomial_model
-from multinomial_simplex_model import multinomial_simplex_model
+from kmerexpr.multinomial_model import multinomial_model
+from kmerexpr.multinomial_simplex_model import multinomial_simplex_model
 from scipy.special import softmax
 
 

@@ -4,7 +4,6 @@ from typing import Any, ClassVar, Dict, List, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
-from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer
 
@@ -25,7 +24,7 @@ class GDLS(Optimizer):
     """
 
     c: float = 0.5
-    max: float = 10**10
+    max: float = 10 ** 10
     decr: float = 0.5
     incr: float = 1.0
     max_iter: int = 100
@@ -48,23 +47,19 @@ class GDLS(Optimizer):
         self,
         curr_p: Snapshot,
         progress_callback: CallbackFunction,
-    ) -> Tuple[Snapshot, int, OnlineSequenceSummary]:
-        saved_parameters = OnlineSequenceSummary(n=20)
-        saved_parameters.update(curr_p)
+    ) -> Snapshot:
 
-        t = 0
-        for t in range(self.max_iter):
+        for _t in range(self.max_iter):
             old_p = curr_p
+
             curr_p, to_log = self.step(curr_p)
 
             progress_callback(curr_p, to_log)
 
-            saved_parameters.update(curr_p.param)
-
             if self.should_stop(curr_p, old_p):
                 break
 
-        return curr_p, t, saved_parameters
+        return curr_p
 
     def step(self, current: Snapshot) -> Tuple[Snapshot, Dict[str, Any]]:
         def newpoint(ss: float) -> NDArray:
@@ -78,7 +73,7 @@ class GDLS(Optimizer):
         function_values: List[float] = []
         found = False
         new = None
-        for t in range(self.max_iter):
+        for _t in range(self.max_iter):
             new = Snapshot(param=newpoint(self.curr_ss), model=current.model)
 
             try:

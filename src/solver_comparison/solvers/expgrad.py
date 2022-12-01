@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import ClassVar, Tuple
+from typing import ClassVar
 
-from exp_grad_solver import exp_grad_solver
+from kmerexpr.exp_grad_solver import exp_grad_solver
 from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer
@@ -22,12 +22,7 @@ class ExpGrad(Optimizer):
     verbose: bool = True
     solver_name: ClassVar[str] = "exp_grad"
 
-    def step(self, current: Snapshot) -> Snapshot:
-        raise ValueError
-
-    def run(
-        self, curr_p: Snapshot, progress_callback: CallbackFunction
-    ) -> Tuple[Snapshot, int, OnlineSequenceSummary]:
+    def run(self, curr_p: Snapshot, progress_callback: CallbackFunction) -> Snapshot:
 
         model, param = curr_p.model, curr_p.param
 
@@ -47,8 +42,4 @@ class ExpGrad(Optimizer):
         for x in dict_sol["xs"]:
             xs_summary.update(x)
 
-        return (
-            Snapshot(model, dict_sol["x"]),
-            dict_sol["iteration_counts"][-1],
-            xs_summary,
-        )
+        return Snapshot(model, dict_sol["x"])

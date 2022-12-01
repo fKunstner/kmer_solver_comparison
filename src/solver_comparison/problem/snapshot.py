@@ -24,11 +24,13 @@ class Snapshot:
     def f(self) -> float:
         if self._f is None:
             self._compute_f_g()
+        assert self._f is not None
         return self._f
 
     def g(self) -> NDArray:
         if self._g is None:
             self._compute_f_g()
+        assert self._g is not None
         return self._g
 
     def pfg(self) -> Tuple[NDArray, float, NDArray]:

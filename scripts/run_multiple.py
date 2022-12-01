@@ -9,16 +9,29 @@ experiments = [
     Experiment(
         prob=Problem(
             model_name="Logistic",
-            filename="sampled_genome_0.01.fsa",
+            filename="test5.fsa",
             K=8,
-            N=100000,
+            N=1000,
             L=14,
             alpha=0.1,
             beta=1.0,
         ),
         opt=LBFGS(),
         init=Initializer("simplex_uniform"),
-    )
+    ),
+    Experiment(
+        prob=Problem(
+            model_name="Simplex",
+            filename="test5.fsa",
+            K=8,
+            N=1000,
+            L=14,
+            alpha=0.1,
+            beta=1.0,
+        ),
+        opt=ExpGrad(),
+        init=Initializer("simplex_uniform"),
+    ),
 ]
 
 

@@ -4,13 +4,15 @@ import logging
 import os
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 
 import numpy as np
+from numpy.typing import NDArray
 
 from solver_comparison.logging.datalogger import DataLogger
 from solver_comparison.logging.expfiles import exp_filepaths
 from solver_comparison.logging.progress_logger import ExperimentProgressLogger
+from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
 from solver_comparison.logging.utils import runtime
 from solver_comparison.problem.problem import Problem
 from solver_comparison.problem.snapshot import Snapshot
@@ -67,8 +69,9 @@ class Experiment(Serializable):
 
         start_time = time.perf_counter()
         progress_logger = ExperimentProgressLogger()
+        saved_parameters = OnlineSequenceSummary(n=20)
 
-        iter = 0
+        curr_iter = 0
         max_iter = self.opt.max_iter
 
         def progress_callback(
@@ -77,13 +80,17 @@ class Experiment(Serializable):
         ):
             curr_time = time.perf_counter()
 
-            nonlocal iter
-            iter += 1
+            nonlocal curr_iter
+            curr_iter += 1
 
-            snapshot = x if isinstance(x, Snapshot) else Snapshot(x, model)
-            progress_logger.tick(max_iter=max_iter, curr_iter=iter, snapshot=snapshot)
+            snapshot = x if isinstance(x, Snapshot) else Snapshot(model, x)
 
-            p, g, f = snapshot.pfg()
+            progress_logger.tick(
+                max_iter=max_iter, curr_iter=curr_iter, snapshot=snapshot
+            )
+            saved_parameters.update(snapshot.p())
+
+            p, f, g = snapshot.pfg()
             datalogger.log(
                 {
                     "time": curr_time - start_time,
@@ -100,13 +107,13 @@ class Experiment(Serializable):
                 datalogger.log(other)
             datalogger.end_step()
 
-        curr_p, t, saved_parameters = self.opt.run(curr_p, progress_callback)
+        curr_p = self.opt.run(curr_p, progress_callback)
 
         datalogger.summary(
             {
                 "x": curr_p.model.probabilities(curr_p.param).tolist(),
                 "loss_records": curr_p.f(),
-                "iteration_counts": t,
+                "iteration_counts": curr_iter,
                 "grad": curr_p.g().tolist(),
                 "xs": saved_parameters.get(),
             }
