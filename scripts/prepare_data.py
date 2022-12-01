@@ -5,6 +5,7 @@ import urllib.request
 from pathlib import Path
 
 from kmerexpr import sample_genome_data
+
 from solver_comparison.kmerexpr import kmerexpr_data_path
 
 fsa_urls = {

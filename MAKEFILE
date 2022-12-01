@@ -11,25 +11,34 @@ help:
 	@echo "lint           Run pylint"
 
 test:
-	@pytest -vx tests --cov-report html:cov_html
+	@pytest -vx tests --cov=src --cov-report html:cov_html
 
 format:
 	@echo "Isort"
 	@isort src
 	@isort tests
+	@isort scripts
 	@echo "Black"
 	@black src
 	@black tests
+	@black scripts
 
 check:
 	@echo "Isort"
 	@isort src --check
+	@isort tests --check
+	@isort scripts --check
 	@echo "Black"
 	@black src --check
+	@black tests --check
+	@black scripts --check
 	@echo "mypy"
 	@mypy src
 	@mypy tests
+	@mypy scripts
 
 lint:
 	@echo "Pylint"
 	@pylint src
+	@pylint scripts
+	@pylint tests

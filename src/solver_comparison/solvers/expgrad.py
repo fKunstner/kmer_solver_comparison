@@ -20,7 +20,6 @@ class ExpGrad(Optimizer):
     """
 
     max_iter: int = 1000
-    verbose: bool = True
     solver_name: ClassVar[str] = "exp_grad"
 
     def run(self, curr_p: Snapshot, progress_callback: CallbackFunction) -> Snapshot:
@@ -34,9 +33,7 @@ class ExpGrad(Optimizer):
             tol=10 ** (-8.0),
             gtol=10 ** (-8.0),
             n_iters=self.max_iter,
-            verbose=self.verbose,
-            n=None,
-            Hessinv=False,
+            verbose=False,
         )
 
         xs_summary = OnlineSequenceSummary(n=20)
