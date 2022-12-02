@@ -1,3 +1,4 @@
+import os.path
 from dataclasses import dataclass, field
 
 from kmerexpr import simulate_reads as sr
@@ -43,8 +44,10 @@ class Problem(Serializable):
         """Creates data for the problem and loads the model -- Time hungry."""
         (ISO_FILE, READS_FILE, X_FILE, Y_FILE) = self.kmer_problem.get_path_names()
         sr.simulate_reads(self.kmer_problem, force_repeat=False)
-        reads_to_y(self.K, READS_FILE, Y_FILE=Y_FILE)
-        tr.transcriptome_to_x(self.K, ISO_FILE, X_FILE, L=self.L)
+        if not os.path.exists(Y_FILE):
+            reads_to_y(self.K, READS_FILE, Y_FILE=Y_FILE)
+        if not os.path.exists(X_FILE):
+            tr.transcriptome_to_x(self.K, ISO_FILE, X_FILE, L=self.L)
         lengths = load_lengths(self.filename, self.N, self.L)
 
         return Model(self.model_type, X_FILE, Y_FILE, beta=self.beta, lengths=lengths)
