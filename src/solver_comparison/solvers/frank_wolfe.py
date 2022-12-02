@@ -25,17 +25,17 @@ class FrankWolfe(Optimizer):
     tol: float = 10**-20
     gtol: float = 10**-20
 
-    def step(self, param: NDArray, loss: Callable, grad: NDArray) -> NDArray:
-        imin = np.argmin(grad)
-        param_target = np.zeros_like(param)
+    def step(self, curr_param: NDArray, loss: Callable, curr_grad: NDArray) -> NDArray:
+        imin = np.argmin(curr_grad)
+        param_target = np.zeros_like(curr_param)
         param_target[imin] = 1.0
-        direction = param_target - param
+        direction = param_target - curr_param
 
-        def loss_update(stepsize):
-            return loss(param + stepsize * direction)
+        def loss_for_stepsize(trial_stepsize):
+            return loss(curr_param + trial_stepsize * direction)
 
         result = optimize.minimize_scalar(
-            loss_update,
+            loss_for_stepsize,
             bounds=(0.0, 1.0),
             method="Bounded",
             options={
@@ -45,9 +45,9 @@ class FrankWolfe(Optimizer):
         )
         stepsize = result["x"]
 
-        param = param + stepsize * direction
+        curr_param = curr_param + stepsize * direction
 
-        return param
+        return curr_param
 
     def run(
         self,
@@ -77,16 +77,16 @@ class FrankWolfe(Optimizer):
                     "iterates have a NaN a iteration {iter}; returning previous iterate"
                 )
                 break
-            #            if norm(new_param - curr_param, ord=1) <= self.tol:
-            #                print(
-            #                    f"Frank Wolfe iterates are less than: {self.tol}, apart. Stopping"
-            #                )
-            #                break
-            #            if norm(new_grad - curr_grad, ord=1) <= self.gtol:
-            #                print(f"Frank Wolfe grads are less than: {self.gtol}, apart. Stopping")
-            #                break
+            if norm(new_param - curr_param, ord=1) <= self.tol:
+                print(
+                    f"Frank Wolfe iterates are less than: {self.tol}, apart. Stopping"
+                )
+                break
+            if norm(new_grad - curr_grad, ord=1) <= self.gtol:
+                print(f"Frank Wolfe grads are less than: {self.gtol}, apart. Stopping")
+                break
 
-            curr_grad = new_grad
             curr_param = new_param
+            curr_grad = new_grad
 
         return curr_param
