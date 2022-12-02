@@ -107,6 +107,9 @@ class Experiment(Serializable):
                 datalogger.log(other)
             datalogger.end_step()
 
+        # Log initialization
+        progress_callback(curr_p)
+
         curr_p = self.opt.run(curr_p, progress_callback)
 
         datalogger.summary(
