@@ -1,5 +1,6 @@
 from kmerexpr.multinomial_model import multinomial_model
 from kmerexpr.multinomial_simplex_model import multinomial_simplex_model
+from numpy.typing import NDArray
 from scipy.special import softmax
 
 SIMPLEX = "Simplex"
@@ -21,12 +22,12 @@ def get_model(name: str):
 
 class _FunctionGradientCache:
     def __init__(self):
-        self.input_id_cache = None
+        self.input = None
         self.func_cache = None
         self.grad_cache = None
 
-    def is_in_cache(self, theta, nograd) -> bool:
-        if self.input_id_cache == id(theta):
+    def is_in_cache(self, theta: NDArray, nograd) -> bool:
+        if (self.input == theta).all():
             if nograd:
                 return self.func_cache is not None
             else:
@@ -34,7 +35,7 @@ class _FunctionGradientCache:
         return False
 
     def cache(self, param, func, grad):
-        self.input_id_cache = id(param)
+        self.input = param.copy()
         self.func_cache = func
         self.grad_cache = grad
 
