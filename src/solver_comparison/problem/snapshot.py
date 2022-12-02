@@ -19,7 +19,7 @@ class Snapshot:
     _f: Optional[float] = field(default=None, init=False)
 
     def _compute_f_g(self):
-        self._f, self._g = self.model.logp_grad(theta=self.param, nograd=False)
+        self._f, self._g = self.model.logp_grad(self.param, nograd=False)
 
     def func(self) -> float:
         if self._f is None:
