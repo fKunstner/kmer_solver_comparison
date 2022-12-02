@@ -8,8 +8,8 @@ from solver_comparison.solvers.initializer import Initializer
 from solver_comparison.solvers.lbfgs import LBFGS
 
 K, N, L = 8, 100, 14
-problem_logistic = Problem(
-    model_name="Logistic", filename="test5.fsa", K=K, N=N, L=L, alpha=0.1, beta=1.0
+problem_softmax = Problem(
+    model_name="Softmax", filename="test5.fsa", K=K, N=N, L=L, alpha=0.1, beta=1.0
 )
 problem_simplex = Problem(
     model_name="Simplex", filename="test5.fsa", K=K, N=N, L=L, alpha=0.1, beta=1.0
@@ -18,7 +18,7 @@ problem_simplex = Problem(
 
 @pytest.mark.parametrize(
     "optimizer,problem",
-    [(ExpGrad(), problem_simplex), (LBFGS(), problem_logistic)],
+    [(ExpGrad(), problem_simplex), (LBFGS(), problem_softmax)],
 )
 def test_simplex_models(optimizer, problem):
     Experiment(

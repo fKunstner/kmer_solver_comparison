@@ -8,7 +8,7 @@ from solver_comparison.solvers.lbfgs import LBFGS
 experiments = [
     Experiment(
         prob=Problem(
-            model_name="Logistic",
+            model_name="Softmax",
             filename="sampled_genome_0.01.fsa",
             K=8,
             N=100000,

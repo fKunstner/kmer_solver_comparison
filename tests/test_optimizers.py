@@ -21,17 +21,14 @@ class ToyModel(Simplex):
         self,
         X,
         direction: Literal["maximize", "minimize"] = "maximize",
-        model: Literal["Simplex", "Logistic"] = "Simplex",
+        model: Literal["Simplex", "Softmax"] = "Simplex",
     ):
         self.X = X
         self.direction = direction
-        self.model = model
+        self.use_softmax = model == "Softmax"
 
     def probabilities(self, w):
-        if self.model == "Simplex":
-            return w
-        elif self.model == "Logistic":
-            return softmax(w)
+        return softmax(w) if self.use_softmax else w
 
     def logp_grad(self, theta=None, nograd=False, Hessinv=None, *args, **kwargs):
         n, d = self.X.shape
@@ -39,15 +36,15 @@ class ToyModel(Simplex):
         sign = -1 if self.direction == "minimize" else 1
 
         def f(w):
-            p = softmax(w) if self.model == "Logistic" else w
+            p = softmax(w) if self.use_softmax else w
             return sign * np.mean(np.log(self.X @ p))
 
         def g(w):
-            p = softmax(w) if self.model == "Logistic" else w
+            p = softmax(w) if self.use_softmax else w
             x_times_p = self.X @ p
             grad = np.einsum("nd,n->d", self.X, 1 / x_times_p) / n
 
-            if self.model == "Logistic":
+            if self.use_softmax:
                 pvec = p.reshape((-1, 1))
                 correction = np.diag(p) - pvec @ pvec.T
                 grad = correction @ grad
@@ -60,8 +57,8 @@ class ToyModel(Simplex):
             return f(theta), g(theta)
 
 
-@pytest.mark.parametrize("model", ["Simplex", "Logistic"])
-def test_gradients(model: Literal["Simplex", "Logistic"]):
+@pytest.mark.parametrize("model", ["Simplex", "Softmax"])
+def test_gradients(model: Literal["Simplex", "Softmax"]):
     toy_model = ToyModel(Xuniform, direction="maximize", model=model)
 
     def gradient_finite_differences(func, x):
@@ -115,17 +112,17 @@ w0_very_shifted = normalize([1, 100, 100])
         (ExpGrad(), "Simplex", "maximize", Xshifted, w0_uniform, w0_shifted),
         (ExpGrad(), "Simplex", "maximize", Xshifted, w0_shifted, w0_shifted),
         (ExpGrad(), "Simplex", "maximize", Xshifted, w0_very_shifted, w0_shifted),
-        (LBFGS(), "Logistic", "maximize", Xuniform, w0_uniform, w0_uniform),
-        (LBFGS(), "Logistic", "maximize", Xuniform, w0_shifted, w0_uniform),
-        (LBFGS(), "Logistic", "maximize", Xuniform, w0_very_shifted, w0_uniform),
-        (LBFGS(), "Logistic", "maximize", Xshifted, w0_uniform, w0_shifted),
-        (LBFGS(), "Logistic", "maximize", Xshifted, w0_shifted, w0_shifted),
-        (LBFGS(), "Logistic", "maximize", Xshifted, w0_very_shifted, w0_shifted),
+        (LBFGS(), "Softmax", "maximize", Xuniform, w0_uniform, w0_uniform),
+        (LBFGS(), "Softmax", "maximize", Xuniform, w0_shifted, w0_uniform),
+        (LBFGS(), "Softmax", "maximize", Xuniform, w0_very_shifted, w0_uniform),
+        (LBFGS(), "Softmax", "maximize", Xshifted, w0_uniform, w0_shifted),
+        (LBFGS(), "Softmax", "maximize", Xshifted, w0_shifted, w0_shifted),
+        (LBFGS(), "Softmax", "maximize", Xshifted, w0_very_shifted, w0_shifted),
     ],
 )
 def test_simplex_models(
     optimizer,
-    model: Literal["Simplex", "Logistic"],
+    model: Literal["Simplex", "Softmax"],
     direction: Literal["minimize", "maximize"],
     X,
     start,

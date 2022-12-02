@@ -5,7 +5,7 @@ from kmerexpr.multinomial_simplex_model import multinomial_simplex_model
 from scipy.special import softmax
 
 
-class Logistic(multinomial_model):
+class Softmax(multinomial_model):
     def probabilities(self, theta):
         return softmax(theta)
 
@@ -22,10 +22,10 @@ class Simplex(multinomial_simplex_model):
         return theta
 
 
-KmerModel = Union[Logistic, Simplex]
+KmerModel = Union[Softmax, Simplex]
 KmerModels = get_args(KmerModel)
-KmerModelName = Literal["Logistic", "Simplex"]
+KmerModelName = Literal["Softmax", "Simplex"]
 model_classes: Dict[KmerModelName, Type[KmerModel]] = {
-    "Logistic": Logistic,
+    "Softmax": Softmax,
     "Simplex": Simplex,
 }

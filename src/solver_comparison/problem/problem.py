@@ -15,14 +15,14 @@ class Problem(Serializable):
     """Wrapper around the datasets and model in kmerexpr.
 
     Args:
-        model_name (Literal["Logistic", "Simplex"]): Parametrization to use
+        model_name: Parametrization to use
             for the model.
-        filename (str): Path to the .fsa file containing the data
-        N (int): Number of reads
-        K (int): Number of Kmers
-        L (int): Length of reads
-        alpha (float): Strength of Dirichlet prior for simulating reads
-        beta (float): Regularization parameter of the model
+        filename: Path to the .fsa file containing the data
+        N: Number of reads
+        K: Number of Kmers
+        L: Length of reads
+        alpha: Strength of Dirichlet prior for simulating reads
+        beta: Regularization parameter of the model
     """
 
     model_name: KmerModelName
@@ -53,11 +53,3 @@ class Problem(Serializable):
 
     def load_simulation_parameters(self):
         return load_simulation_parameters(self.kmer_problem)
-
-
-test_problem_logistic = Problem(
-    model_name="Logistic", filename="test5.fsa", K=8, N=1_000, L=14, alpha=0.1, beta=0.0
-)
-test_problem_simplex = Problem(
-    model_name="Simplex", filename="test5.fsa", K=8, N=1_000, L=14, alpha=0.1, beta=0.0
-)

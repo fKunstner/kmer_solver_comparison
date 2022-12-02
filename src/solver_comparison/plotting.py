@@ -6,11 +6,46 @@ import numpy as np
 import pandas as pd
 from kmerexpr.plotting import plot_error_vs_iterations, plot_scatter
 from kmerexpr.simulate_reads import length_adjustment_inverse
-from kmerexpr.utils import Model_Parameters, get_plot_title, load_lengths
+from kmerexpr.utils import Model_Parameters, load_lengths
 
 from solver_comparison import config
 from solver_comparison.experiment import Experiment
 from solver_comparison.logging.expfiles import exp_filepaths
+from solver_comparison.problem.problem import Problem
+from solver_comparison.solvers.optimizer import Optimizer
+
+
+def get_plot_base_filename(problem: Problem, optimizer: Optimizer):
+    """Generate base filename for the problem/optimizer combination.
+
+    Version of `kmerexpr.plotting.get_plot_title` to work with all optimizers.
+
+    Args:
+        problem:
+        optimizer:
+
+    Returns:
+    """
+    title = (
+        problem.filename
+        + "-"
+        + model_parameters.model_type
+        + "-N-"
+        + str(problem.N)
+        + "-L-"
+        + str(problem.L)
+        + "-K-"
+        + str(problem.K)
+        + "-init-"
+        + model_parameters.init_iterates
+        + "-a-"
+        + str(problem.alpha)
+    )
+    if model_parameters.solver_name != "empty":
+        title = title + "-" + model_parameters.solver_name
+    if model_parameters.lrs != None:
+        title = title + "-" + model_parameters.lrs
+    return title
 
 
 def plot_against_ground_truth(dict_simulation):
@@ -50,7 +85,7 @@ def make_individual_exp_plots(exp: Experiment):
     summary_df = pd.read_csv(summary_path)
     dict_results = convert_summary_to_dict_results(summary_df)
 
-    base_title = get_plot_title(problem, model_parameters)
+    base_title = get_plot_base_filename(problem, model_parameters)
 
     # Plotting and checking against ground truth
     dict_simulation = exp.prob.load_simulation_parameters()
