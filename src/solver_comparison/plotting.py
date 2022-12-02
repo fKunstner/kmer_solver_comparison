@@ -37,41 +37,46 @@ def plot_optimization():
     pass
 
 
-def convert_summary_to_dict_results(summary_df):
-    summary_dict = {k: v[0] for k, v in summary_df.to_dict().items()}
-    try:
-        dict_results = {
-            "x": np.array(json.loads(summary_dict["x"])),
-            "xs": np.array(json.loads(summary_dict["probs"])),
-            "loss_records": summary_dict["loss_records"],
-            "iteration_counts": json.loads(summary_dict["iters"]),
-            "grad": np.array(json.loads(summary_dict["grad"])),
-        }
-    except Exception as exc:
-        import pdb
+def plot_optimization_error_vs_iterations(
+    dict_results, theta_true, title, model_type, save_path="./figures"
+):
+    errors_list = []
+    dict_plot = {}
+    errors = get_errors(dict_results["xs"], theta_true)
+    errors_list.append(errors)
+    dict_plot[model_type] = errors_list
+    plot_general(
+        dict_plot,
+        title=title,
+        save_path=save_path,
+        yaxislabel=r"$\|\theta -\theta^{*} \|$",
+        xticks=dict_results["iteration_counts"],
+        xaxislabel="iterations",
+    )
+    plt.close()
 
-        pdb.set_trace()
 
+def convert_summary_to_dict_results(summary):
+    dict_results = {
+        "x": summary["prob_end"],
+        "xs": summary["probs"],
+        "loss_records": summary["funcs"],
+        "iteration_counts": summary["iters"],
+        "grads_l0": summary["grads_l0"],
+        "grads_l1": summary["grads_l1"],
+        "grads_l2": summary["grads_l2"],
+        "grads_linf": summary["grads_linf"],
+    }
     return dict_results
 
 
 def make_individual_exp_plots(exp: Experiment):
-    model_parameters = Model_Parameters(
-        model_type=str(exp.prob.model_type),
-        solver_name=exp.opt.solver_name,
-    )
-
-    # This is a hacky workaround.
-    """Model_Parameters is used in KmerExpr to define the optimizer to use
-    and define its name for plotting. If the solver_name is unknown, it defaults
-    to exp_grad. We're trying to use the plotting code without modifying it,
-    but need but we need to set our optimizers name"""
-    model_parameters.solver_name = exp.opt.solver_name
-
     problem = exp.prob.kmer_problem
     conf_path, data_path, summary_path = exp_filepaths(exp.hash())
-    summary_df = pd.read_csv(summary_path)
-    dict_results = convert_summary_to_dict_results(summary_df)
+    # summary_df = pd.read_csv(summary_path)
+    with open(summary_path, "r") as fp:
+        summary = json.load(fp)
+    dict_results = convert_summary_to_dict_results(summary)
 
     base_title = get_plot_base_filename(exp)
 
@@ -79,11 +84,10 @@ def make_individual_exp_plots(exp: Experiment):
     dict_simulation = exp.prob.load_simulation_parameters()
     theta_true = dict_simulation["theta_true"]
     psi_true = dict_simulation["psi"]
-
     fig_folder = os.path.join(config.workspace(), "figures")
     Path(fig_folder).mkdir(parents=True, exist_ok=True)
 
-    title_errors = base_title + "-theta-errors-"
+    title_errors = base_title + "-theta-errors"
     plot_error_vs_iterations(
         dict_results,
         theta_true,

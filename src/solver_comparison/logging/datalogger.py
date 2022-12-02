@@ -1,3 +1,4 @@
+import json
 import logging
 import warnings
 from copy import deepcopy
@@ -91,9 +92,9 @@ class DataLogger:
         conf_file, data_file, summary_file = exp_filepaths(self.exp_id)
 
         logger = logging.getLogger(__name__)
-        logger.info(f"Saving config file in {data_file}")
-        config_df = pd.DataFrame.from_records([self._exp_conf])
-        config_df.to_csv(conf_file)
+        logger.info(f"Saving config file in {conf_file}")
+        with open(conf_file, "w") as fp:
+            json.dump(self._exp_conf, fp)
 
         logger.info(f"Saving experiment results in {data_file}")
         data_df = pd.DataFrame.from_records(self._dicts)
@@ -101,5 +102,5 @@ class DataLogger:
         data_df.to_csv(data_file)
 
         logger.info(f"Saving summary in {summary_file}")
-        summary_df = pd.DataFrame.from_records([self._summary])
-        summary_df.to_csv(summary_file)
+        with open(summary_file, "w") as fp:
+            json.dump(self._summary, fp)

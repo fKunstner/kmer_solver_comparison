@@ -10,20 +10,20 @@ from solver_comparison.problem.model import Model
 
 
 class ExperimentProgressLogger:
-    def __init__(self, log_every: int = 3):
+    def __init__(self, max_iter: int, log_every: int = 3):
         self.timelogger = RateLimitedLogger(time_interval=log_every)
         self.start_time = time.perf_counter()
+        self.max_iter = max_iter
 
     def tick(
         self,
-        max_iter: int,
         curr_iter: int,
         model_and_params: Optional[Tuple[Model, NDArray]] = None,
     ):
         i = curr_iter
-        progress = curr_iter / max_iter
-        i_width = len(str(max_iter))
-        iter_str = f"Iter {i: >{i_width}}/{max_iter}"
+        progress = curr_iter / self.max_iter
+        i_width = len(str(self.max_iter))
+        iter_str = f"Iter {i: >{i_width}}/{self.max_iter}"
 
         time_str = ""
         if self.start_time is not None:

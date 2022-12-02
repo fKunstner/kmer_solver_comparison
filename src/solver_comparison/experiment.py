@@ -66,11 +66,21 @@ class Experiment(Serializable):
         model, param, datalogger = self._startup()
 
         start_time = time.perf_counter()
-        progress_logger = ExperimentProgressLogger()
+        progress_logger = ExperimentProgressLogger(max_iter=self.opt.max_iter)
         saved_parameters = OnlineSequenceSummary(n_to_save=20)
 
+        def info_to_save(param):
+            func, grad = model.logp_grad(param, nograd=False)
+            return {
+                "param": param,
+                "func": func,
+                "grad_l0": np.linalg.norm(grad, ord=0),
+                "grad_l1": np.linalg.norm(grad, ord=1),
+                "grad_l2": np.linalg.norm(grad, ord=2),
+                "grad_linf": np.linalg.norm(grad, ord=np.inf),
+            }
+
         curr_iter = 0
-        max_iter = self.opt.max_iter
 
         def progress_callback(
             param: NDArray,
@@ -81,23 +91,23 @@ class Experiment(Serializable):
             nonlocal curr_iter
             curr_iter += 1
 
-            progress_logger.tick(
-                max_iter=max_iter, curr_iter=curr_iter, model_and_params=(model, param)
-            )
-            saved_parameters.update(param)
+            progress_logger.tick(curr_iter=curr_iter, model_and_params=(model, param))
 
+            saved_parameters.update(info_to_save(param))
             func_val, grad_val = model.logp_grad(param, nograd=False)
 
             datalogger.log(
                 {
                     "time": curr_time - start_time,
                     "func_val": func_val,
-                    "|grad_val|_1": np.linalg.norm(grad_val, ord=1),
-                    "|grad_val|_2": np.linalg.norm(grad_val, ord=2),
-                    "|grad_val|_inf": np.linalg.norm(grad_val, ord=np.inf),
-                    "|param|_1": np.linalg.norm(param, ord=1),
-                    "|param|_2": np.linalg.norm(param, ord=2),
-                    "|param|_inf": np.linalg.norm(param, ord=np.inf),
+                    "grad_l0": np.linalg.norm(grad_val, ord=0),
+                    "grad_l1": np.linalg.norm(grad_val, ord=1),
+                    "grad_l2": np.linalg.norm(grad_val, ord=2),
+                    "grad_linf": np.linalg.norm(grad_val, ord=np.inf),
+                    "param_l0": np.linalg.norm(param, ord=0),
+                    "param_l1": np.linalg.norm(param, ord=1),
+                    "param_l2": np.linalg.norm(param, ord=2),
+                    "param_linf": np.linalg.norm(param, ord=np.inf),
                 }
             )
             if other is not None:
@@ -108,17 +118,25 @@ class Experiment(Serializable):
         progress_callback(param)
 
         param_end = self.opt.run(model, param, progress_callback)
-        func, grad = model.logp_grad(param_end, nograd=False)
 
-        saved_iters, saved_params = saved_parameters.get()
+        func, grad = model.logp_grad(param_end, nograd=False)
+        saved_iters, saved_values = saved_parameters.get()
+
         datalogger.summary(
             {
-                "x": model.probabilities(param_end).tolist(),
-                "loss_records": func,
-                "iteration_counts": curr_iter,
-                "grad": grad.tolist(),
-                "xs": [x.tolist() for x in saved_params],
-                "probs": [model.probabilities(x).tolist() for x in saved_params],
+                "prob_end": model.probabilities(param_end).tolist(),
+                "loss_end": func,
+                "grad_end": grad.tolist(),
+                "iter_end": curr_iter,
+                "probs": [
+                    model.probabilities(x["param"]).tolist() for x in saved_values
+                ],
+                "params": [x["param"].tolist() for x in saved_values],
+                "funcs": [x["func"] for x in saved_values],
+                "grads_l0": [x["grad_l0"] for x in saved_values],
+                "grads_l1": [x["grad_l1"] for x in saved_values],
+                "grads_l2": [x["grad_l2"] for x in saved_values],
+                "grads_linf": [x["grad_linf"] for x in saved_values],
                 "iters": saved_iters,
             }
         )
