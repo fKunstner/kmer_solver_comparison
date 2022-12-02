@@ -1,5 +1,6 @@
 from kmerexpr.multinomial_model import multinomial_model
 from kmerexpr.multinomial_simplex_model import multinomial_simplex_model
+from scipy.special import softmax
 
 SIMPLEX = "Simplex"
 SOFTMAX = "Softmax"
@@ -79,7 +80,12 @@ class Model:
         return self._cache.cached_values(nograd)
 
     def probabilities(self, params):
-        return params
+        if self.model_type == SIMPLEX:
+            return params
+        elif self.model_type == SOFTMAX:
+            return softmax(params)
+        else:
+            raise ValueError(unknown_model_error(self.model_type))
 
     @property
     def dimension(self) -> int:
