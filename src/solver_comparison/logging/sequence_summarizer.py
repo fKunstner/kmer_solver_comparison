@@ -22,45 +22,46 @@ class OnlineSequenceSummary:
     def __init__(self, n_to_save: int):
         self.first = None
         self.last = None
-        self.saved = [None] * n_to_save
-        self.it_saved = [None] * n_to_save
-        self.it_to_save = [i + 1 for i in range(n_to_save)]
-        self.iteration = 0
+        self.saved_values = [None] * n_to_save
+        self.saved_iter = [None] * n_to_save
+        self.iter_to_save = [i + 1 for i in range(n_to_save)]
+        self.curr_iter = 0
 
     def update(self, value):
-        if self.iteration == 0:
+        if self.curr_iter == 0:
             self.first = deepcopy(value)
-
         else:
-            if self.iteration > self.it_to_save[-1]:
-                self.it_to_save = [2 * i for i in self.it_to_save]
+            exceeded_buffer_length = self.curr_iter > self.iter_to_save[-1]
+            if exceeded_buffer_length:
+                self.iter_to_save = [2 * i for i in self.iter_to_save]
 
-            if self.iteration in self.it_to_save:
-                if None in self.it_saved:
-                    index = self.it_saved.index(None)
+            if self.curr_iter in self.iter_to_save:
+                buffer_has_empty_slot = None in self.saved_iter
+                if buffer_has_empty_slot:
+                    index = self.saved_iter.index(None)
                 else:
-                    iterations_no_longer_needed = [
+                    unneeded_entries = [
                         i
-                        for i in self.it_saved
-                        if (i is not None and i not in self.it_to_save)
+                        for i in self.saved_iter
+                        if (i is not None and i not in self.iter_to_save)
                     ]
-                    iteration_to_discard = min(iterations_no_longer_needed)
-                    index = self.it_saved.index(iteration_to_discard)
+                    oldest_unneeded_entry = min(unneeded_entries)
+                    index = self.saved_iter.index(oldest_unneeded_entry)
 
-                self.saved[index] = copy.deepcopy(value)
-                self.last = self.saved[index]
-                self.it_saved[index] = self.iteration
+                self.saved_values[index] = copy.deepcopy(value)
+                self.last = self.saved_values[index]
+                self.saved_iter[index] = self.curr_iter
             else:
                 self.last = copy.deepcopy(value)
-        self.iteration += 1
+        self.curr_iter += 1
 
     def get(self):
-        iterations = [0] + [_ for _ in self.it_saved if _ is not None]
-        data = [self.first] + [_ for _ in self.saved if _ is not None]
+        iterations = [0] + filter(lambda x: x is not None, self.saved_iter)
+        data = [self.first] + filter(lambda x: x is not None, self.saved_values)
 
-        last_element_already_in_list = (self.iteration - 1) in self.it_saved
+        last_element_already_in_list = (self.curr_iter - 1) in self.saved_iter
         if not last_element_already_in_list and self.last is not None:
-            iterations += [self.iteration - 1]
+            iterations += [self.curr_iter - 1]
             data += [self.last]
 
         sort_index = np.argsort(iterations)
