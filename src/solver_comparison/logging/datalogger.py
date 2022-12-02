@@ -81,7 +81,6 @@ class DataLogger:
         Raises a warning is the DataLogger is saved before changes are
         committed with ``end_step``.
         """
-
         if len(self._current_dict) > 0:
             warnings.warn(
                 "Called save on a DataLogger, "
@@ -93,7 +92,7 @@ class DataLogger:
 
         logger = logging.getLogger(__name__)
         logger.info(f"Saving config file in {data_file}")
-        config_df = pd.DataFrame.from_records([self._dicts])
+        config_df = pd.DataFrame.from_records([self._exp_conf])
         config_df.to_csv(conf_file)
 
         logger.info(f"Saving experiment results in {data_file}")
