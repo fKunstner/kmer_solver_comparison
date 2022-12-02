@@ -56,8 +56,8 @@ class OnlineSequenceSummary:
         self.curr_iter += 1
 
     def get(self):
-        iterations = [0] + filter(lambda x: x is not None, self.saved_iter)
-        data = [self.first] + filter(lambda x: x is not None, self.saved_values)
+        iterations = [0] + list(filter(lambda x: x is not None, self.saved_iter))
+        data = [self.first] + list(filter(lambda x: x is not None, self.saved_values))
 
         last_element_already_in_list = (self.curr_iter - 1) in self.saved_iter
         if not last_element_already_in_list and self.last is not None:
