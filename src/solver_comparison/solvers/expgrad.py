@@ -35,6 +35,7 @@ class ExpGrad(Optimizer):
             gtol=10 ** (-20.0),
             n_iters=self.max_iter,
             verbose=False,
+            callback=progress_callback,
         )
 
         return dict_sol["x"]

@@ -42,8 +42,8 @@ experiments = [
 if __name__ == "__main__":
 
     for exp in experiments:
-        # if not exp.has_already_run():
-        exp.run()
+        if not exp.has_already_run():
+            exp.run()
 
     for exp in experiments:
         make_individual_exp_plots(exp)

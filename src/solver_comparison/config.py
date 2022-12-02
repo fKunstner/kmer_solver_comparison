@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 
 def _key(name: str) -> str:
@@ -28,3 +29,9 @@ def experiment_dir():
 
 def get_console_logging_level():
     return os.environ.get(K_LOGLEVEL, DEFAULTS[K_LOGLEVEL])
+
+
+def figures_dir():
+    fig_folder = os.path.join(workspace(), "figures")
+    Path(fig_folder).mkdir(parents=True, exist_ok=True)
+    return fig_folder
