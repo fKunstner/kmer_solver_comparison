@@ -31,8 +31,8 @@ class ExpGrad(Optimizer):
             loss_grad=model.logp_grad,
             x_0=param,
             lrs="armijo",
-            tol=10 ** (-8.0),
-            gtol=10 ** (-8.0),
+            tol=10 ** (-20.0),
+            gtol=10 ** (-20.0),
             n_iters=self.max_iter,
             verbose=False,
         )

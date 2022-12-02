@@ -47,12 +47,11 @@ class LBFGS(Optimizer):
                 "softmax model did not converge. "
                 "Too many function evaluations or too many iterations. "
                 f"Total iterations: {dict_flags_convergence['nit']}"
-                "Print d[task]:",
-                dict_flags_convergence["task"],
+                f"Print d[task]: {dict_flags_convergence['task']}"
             )
         elif dict_flags_convergence["warnflag"] == 2:
             warnings.warn(
-                "Softmax model did not converge due to:", dict_flags_convergence["task"]
+                f"Softmax model did not converge due to: {dict_flags_convergence['task']}"
             )
 
         return final_param
