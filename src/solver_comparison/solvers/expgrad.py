@@ -1,10 +1,9 @@
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import Optional
 
 from kmerexpr.exp_grad_solver import exp_grad_solver
 from numpy.typing import NDArray
 
-from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
 from solver_comparison.problem.model import Model
 from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer
 
@@ -18,7 +17,6 @@ class ExpGrad(Optimizer):
     """
 
     max_iter: int = 1000
-    solver_name: ClassVar[str] = "exp_grad"
 
     def run(
         self,

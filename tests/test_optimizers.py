@@ -7,6 +7,7 @@ from scipy.special import softmax
 
 from solver_comparison.problem.model import SIMPLEX, SOFTMAX, Model
 from solver_comparison.solvers.expgrad import ExpGrad
+from solver_comparison.solvers.frank_wolfe import FrankWolfe
 from solver_comparison.solvers.lbfgs import LBFGS
 
 
@@ -114,6 +115,12 @@ weights_unbalanced = normalize([1, 100, 100])
         (LBFGS(), data_shifted, weights_uniform, weights_shifted),
         (LBFGS(), data_shifted, weights_shifted, weights_shifted),
         (LBFGS(), data_shifted, weights_unbalanced, weights_shifted),
+        (FrankWolfe(), data_uniform, weights_uniform, weights_uniform),
+        (FrankWolfe(), data_uniform, weights_shifted, weights_uniform),
+        (FrankWolfe(), data_uniform, weights_unbalanced, weights_uniform),
+        (FrankWolfe(), data_shifted, weights_uniform, weights_shifted),
+        (FrankWolfe(), data_shifted, weights_shifted, weights_shifted),
+        (FrankWolfe(), data_shifted, weights_unbalanced, weights_shifted),
     ],
 )
 def test_optimizers(

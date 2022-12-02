@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Callable, ClassVar, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional
 
-import numpy as np
 from numpy.typing import NDArray
 
 from solver_comparison.problem.model import Model
@@ -17,7 +16,6 @@ class Optimizer(ABC, Serializable):
 
     max_iter: int = 100
     iter: int = field(init=False)
-    solver_name: ClassVar[str] = "generic_optimizer"
 
     def __post_init__(self):
         self.iter = 0

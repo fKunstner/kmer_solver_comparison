@@ -1,6 +1,6 @@
 import warnings
 from dataclasses import dataclass
-from typing import ClassVar, Optional
+from typing import Optional
 
 from numpy.typing import NDArray
 from scipy import optimize
@@ -12,8 +12,6 @@ from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer
 @dataclass
 class LBFGS(Optimizer):
     """LBFGS using the Scipy implementation."""
-
-    solver_name: ClassVar[str] = "lbfgs"
 
     def run(
         self,
