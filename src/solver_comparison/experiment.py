@@ -109,13 +109,17 @@ class Experiment(Serializable):
 
         param_end = self.opt.run(model, param, progress_callback)
         func, grad = model.logp_grad(param_end, nograd=False)
+
+        saved_iters, saved_params = saved_parameters.get()
         datalogger.summary(
             {
                 "x": model.probabilities(param_end).tolist(),
                 "loss_records": func,
                 "iteration_counts": curr_iter,
-                "grad": grad,
-                "xs": saved_parameters.get(),
+                "grad": grad.tolist(),
+                "xs": [x.tolist() for x in saved_params],
+                "probs": [model.probabilities(x).tolist() for x in saved_params],
+                "iters": saved_iters,
             }
         )
         datalogger.save()
