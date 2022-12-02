@@ -6,15 +6,18 @@ from solver_comparison.solvers.expgrad import ExpGrad
 from solver_comparison.solvers.initializer import Initializer
 from solver_comparison.solvers.lbfgs import LBFGS
 
+filename = "sampled_genome_0.001.fsa"
+K, N, L, alpha = 8, 10000, 14, 0.1
+
 experiments = [
     Experiment(
         prob=Problem(
             model_type=SOFTMAX,
-            filename="test5.fsa",
-            K=8,
-            N=1000,
-            L=14,
-            alpha=0.1,
+            filename=filename,
+            K=K,
+            N=N,
+            L=L,
+            alpha=alpha,
             beta=1.0,
         ),
         opt=LBFGS(),
@@ -23,11 +26,11 @@ experiments = [
     Experiment(
         prob=Problem(
             model_type=SIMPLEX,
-            filename="test5.fsa",
-            K=8,
-            N=1000,
-            L=14,
-            alpha=0.1,
+            filename=filename,
+            K=K,
+            N=N,
+            L=L,
+            alpha=alpha,
             beta=1.0,
         ),
         opt=ExpGrad(),
