@@ -1,11 +1,12 @@
 from functools import partial
-from typing import Literal
+from typing import Literal, Union
 
 import numpy as np
 import pytest
+from numpy.typing import NDArray
 from scipy.special import softmax
 
-from solver_comparison.problem.model import Simplex
+from solver_comparison.problem.model import Simplex, SimplexModel, Softmax
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.solvers.expgrad import ExpGrad
 from solver_comparison.solvers.lbfgs import LBFGS
@@ -16,16 +17,14 @@ def normalize(ws):
     return w / np.sum(w)
 
 
-class ToyModel(Simplex):
+class ToyModel(SimplexModel):
     def __init__(
         self,
-        X,
-        direction: Literal["maximize", "minimize"] = "maximize",
-        model: Literal["Simplex", "Softmax"] = "Simplex",
+        X: NDArray,
+        use_softmax,
     ):
         self.X = X
-        self.direction = direction
-        self.use_softmax = model == "Softmax"
+        self.use_softmax = use_softmax
 
     def probabilities(self, w):
         return softmax(w) if self.use_softmax else w
@@ -33,11 +32,9 @@ class ToyModel(Simplex):
     def logp_grad(self, theta=None, nograd=False, Hessinv=None, *args, **kwargs):
         n, d = self.X.shape
 
-        sign = -1 if self.direction == "minimize" else 1
-
         def f(w):
             p = softmax(w) if self.use_softmax else w
-            return sign * np.mean(np.log(self.X @ p))
+            return np.mean(np.log(self.X @ p))
 
         def g(w):
             p = softmax(w) if self.use_softmax else w
@@ -49,7 +46,7 @@ class ToyModel(Simplex):
                 correction = np.diag(p) - pvec @ pvec.T
                 grad = correction @ grad
 
-            return sign * grad
+            return grad
 
         if nograd:
             return f(theta)
@@ -57,9 +54,9 @@ class ToyModel(Simplex):
             return f(theta), g(theta)
 
 
-@pytest.mark.parametrize("model", ["Simplex", "Softmax"])
-def test_gradients(model: Literal["Simplex", "Softmax"]):
-    toy_model = ToyModel(Xuniform, direction="maximize", model=model)
+@pytest.mark.parametrize("use_softmax", [False, True])
+def test_gradients(use_softmax):
+    toy_model = ToyModel(Xuniform, use_softmax=use_softmax)
 
     def gradient_finite_differences(func, x):
         n = np.shape(x)[0]
@@ -104,32 +101,31 @@ w0_very_shifted = normalize([1, 100, 100])
 
 
 @pytest.mark.parametrize(
-    "optimizer,model,direction,X,start,expected",
+    "optimizer,X,start,expected",
     [
-        (ExpGrad(), "Simplex", "maximize", Xuniform, w0_uniform, w0_uniform),
-        (ExpGrad(), "Simplex", "maximize", Xuniform, w0_shifted, w0_uniform),
-        (ExpGrad(), "Simplex", "maximize", Xuniform, w0_very_shifted, w0_uniform),
-        (ExpGrad(), "Simplex", "maximize", Xshifted, w0_uniform, w0_shifted),
-        (ExpGrad(), "Simplex", "maximize", Xshifted, w0_shifted, w0_shifted),
-        (ExpGrad(), "Simplex", "maximize", Xshifted, w0_very_shifted, w0_shifted),
-        (LBFGS(), "Softmax", "maximize", Xuniform, w0_uniform, w0_uniform),
-        (LBFGS(), "Softmax", "maximize", Xuniform, w0_shifted, w0_uniform),
-        (LBFGS(), "Softmax", "maximize", Xuniform, w0_very_shifted, w0_uniform),
-        (LBFGS(), "Softmax", "maximize", Xshifted, w0_uniform, w0_shifted),
-        (LBFGS(), "Softmax", "maximize", Xshifted, w0_shifted, w0_shifted),
-        (LBFGS(), "Softmax", "maximize", Xshifted, w0_very_shifted, w0_shifted),
+        (ExpGrad(), Xuniform, w0_uniform, w0_uniform),
+        (ExpGrad(), Xuniform, w0_shifted, w0_uniform),
+        (ExpGrad(), Xuniform, w0_very_shifted, w0_uniform),
+        (ExpGrad(), Xshifted, w0_uniform, w0_shifted),
+        (ExpGrad(), Xshifted, w0_shifted, w0_shifted),
+        (ExpGrad(), Xshifted, w0_very_shifted, w0_shifted),
+        (LBFGS(), Xuniform, w0_uniform, w0_uniform),
+        (LBFGS(), Xuniform, w0_shifted, w0_uniform),
+        (LBFGS(), Xuniform, w0_very_shifted, w0_uniform),
+        (LBFGS(), Xshifted, w0_uniform, w0_shifted),
+        (LBFGS(), Xshifted, w0_shifted, w0_shifted),
+        (LBFGS(), Xshifted, w0_very_shifted, w0_shifted),
     ],
 )
 def test_simplex_models(
     optimizer,
-    model: Literal["Simplex", "Softmax"],
-    direction: Literal["minimize", "maximize"],
     X,
     start,
     expected,
 ):
     np.seterr(all="raise")
-    toymodel = ToyModel(X, direction=direction, model=model)
+    use_softmax = isinstance(optimizer, LBFGS)
+    toymodel = ToyModel(X, use_softmax=use_softmax)
     snapshot = Snapshot(toymodel, start)
     out_snapshot = optimizer.run(snapshot)
     assert np.allclose(toymodel.probabilities(out_snapshot.param), expected)

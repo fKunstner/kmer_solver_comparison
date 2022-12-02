@@ -6,7 +6,7 @@ from kmerexpr.rna_seq_reader import reads_to_y
 from kmerexpr.utils import Problem as KmerExprProblem
 from kmerexpr.utils import load_lengths, load_simulation_parameters
 
-from solver_comparison.problem.model import KmerModel, KmerModelName, model_classes
+from solver_comparison.problem.model import KmerModel, get_model
 from solver_comparison.serialization import Serializable
 
 
@@ -15,7 +15,7 @@ class Problem(Serializable):
     """Wrapper around the datasets and model in kmerexpr.
 
     Args:
-        model_name: Parametrization to use
+        model_type: Parametrization to use
             for the model.
         filename: Path to the .fsa file containing the data
         N: Number of reads
@@ -25,7 +25,7 @@ class Problem(Serializable):
         beta: Regularization parameter of the model
     """
 
-    model_name: KmerModelName
+    model_type: str
     filename: str
     N: int
     K: int
@@ -47,7 +47,7 @@ class Problem(Serializable):
         tr.transcriptome_to_x(self.K, ISO_FILE, X_FILE, L=self.L)
         lengths = load_lengths(self.filename, self.N, self.L)
 
-        return model_classes[self.model_name](
+        return get_model(self.model_type)(
             X_FILE, Y_FILE, beta=self.beta, lengths=lengths, solver_name=None
         )
 

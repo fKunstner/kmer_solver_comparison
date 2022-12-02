@@ -1,11 +1,11 @@
-from typing import Dict, Literal, Type, Union, get_args
+from typing import Literal, Union
 
 from kmerexpr.multinomial_model import multinomial_model
 from kmerexpr.multinomial_simplex_model import multinomial_simplex_model
 from scipy.special import softmax
 
 
-class Softmax(multinomial_model):
+class SoftmaxModel(multinomial_model):
     def probabilities(self, theta):
         return softmax(theta)
 
@@ -17,15 +17,22 @@ class Softmax(multinomial_model):
             return f, g
 
 
-class Simplex(multinomial_simplex_model):
+class SimplexModel(multinomial_simplex_model):
     def probabilities(self, theta):
         return theta
 
 
-KmerModel = Union[Softmax, Simplex]
-KmerModels = get_args(KmerModel)
-KmerModelName = Literal["Softmax", "Simplex"]
-model_classes: Dict[KmerModelName, Type[KmerModel]] = {
-    "Softmax": Softmax,
-    "Simplex": Simplex,
-}
+KmerModel = Union[SoftmaxModel, SimplexModel]
+Simplex = "Simplex"
+Softmax = "Softmax"
+
+
+def get_model(name: str):
+    if name not in [Simplex, Softmax]:
+        raise ValueError(
+            f"Unknown model type {name}, " f"expected one of [{Simplex}, {Softmax}]."
+        )
+    if name == Simplex:
+        return SimplexModel
+    else:
+        return SoftmaxModel

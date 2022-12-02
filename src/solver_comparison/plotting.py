@@ -26,26 +26,7 @@ def get_plot_base_filename(problem: Problem, optimizer: Optimizer):
 
     Returns:
     """
-    title = (
-        problem.filename
-        + "-"
-        + model_parameters.model_type
-        + "-N-"
-        + str(problem.N)
-        + "-L-"
-        + str(problem.L)
-        + "-K-"
-        + str(problem.K)
-        + "-init-"
-        + model_parameters.init_iterates
-        + "-a-"
-        + str(problem.alpha)
-    )
-    if model_parameters.solver_name != "empty":
-        title = title + "-" + model_parameters.solver_name
-    if model_parameters.lrs != None:
-        title = title + "-" + model_parameters.lrs
-    return title
+    return
 
 
 def plot_against_ground_truth(dict_simulation):
@@ -69,7 +50,7 @@ def convert_summary_to_dict_results(summary_df):
 
 def make_individual_exp_plots(exp: Experiment):
     model_parameters = Model_Parameters(
-        model_type=exp.prob.model_name,
+        model_type=str(exp.prob.model_type),
         solver_name=exp.opt.solver_name,
     )
 
