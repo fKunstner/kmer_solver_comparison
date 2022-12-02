@@ -8,8 +8,10 @@ from solver_comparison.problem.model import KmerModel
 
 @dataclass
 class Snapshot:
-    """Snapshot of a model at some parameter to cache func/grad
-    computations."""
+    """Snapshot of a model at some parameter.
+
+    Primarily used to cache function/gradient evaluations for logging.
+    """
 
     model: KmerModel
     param: NDArray

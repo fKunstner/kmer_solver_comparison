@@ -1,11 +1,9 @@
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import ClassVar, Optional
 
 from numpy.typing import NDArray
 from scipy import optimize
-from scipy.special import softmax
 
-from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer
 
@@ -22,16 +20,14 @@ class LBFGS(Optimizer):
     def run(
         self,
         curr_p: Snapshot,
-        progress_callback: CallbackFunction,
+        progress_callback: Optional[CallbackFunction] = None,
     ) -> Snapshot:
 
         model, param = curr_p.model, curr_p.param
 
-        xs_summary = OnlineSequenceSummary(n=20)
-
         def lbfgs_callback(x: NDArray):
-            progress_callback(Snapshot(model, x), None)
-            xs_summary.update(softmax(x))
+            if progress_callback is not None:
+                progress_callback(Snapshot(model, x), None)
 
         def func(theta):
             return -model.logp_grad(theta)[0]
@@ -44,7 +40,7 @@ class LBFGS(Optimizer):
             param,
             grad,
             pgtol=1e-12,
-            factr=1.0,
+            factr=0,
             maxiter=self.max_iter,
             maxfun=10 * self.max_iter,
             callback=lbfgs_callback,

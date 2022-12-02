@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, Dict, List, Tuple
+from typing import Any, ClassVar, Dict, List, Optional, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -47,7 +47,7 @@ class GDLS(Optimizer):
     def run(
         self,
         curr_p: Snapshot,
-        progress_callback: CallbackFunction,
+        progress_callback: Optional[CallbackFunction] = None,
     ) -> Snapshot:
 
         for _t in range(self.max_iter):
@@ -55,7 +55,8 @@ class GDLS(Optimizer):
 
             curr_p, to_log = self.step(curr_p)
 
-            progress_callback(curr_p, to_log)
+            if progress_callback is not None:
+                progress_callback(curr_p, to_log)
 
             if self.should_stop(curr_p, old_p):
                 break

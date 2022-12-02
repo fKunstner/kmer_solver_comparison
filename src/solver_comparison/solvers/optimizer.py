@@ -41,6 +41,6 @@ class Optimizer(ABC, Serializable):
     def run(
         self,
         curr_p: Snapshot,
-        progress_callback: CallbackFunction,
+        progress_callback: Optional[CallbackFunction] = None,
     ) -> Snapshot:
         raise NotImplementedError
