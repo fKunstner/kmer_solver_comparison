@@ -5,7 +5,7 @@ import pytest
 from numpy.typing import NDArray
 from scipy.special import softmax
 
-from solver_comparison.problem.model import SIMPLEX, SOFTMAX, SimplexModel
+from solver_comparison.problem.model import SIMPLEX, SOFTMAX, Model
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.solvers.expgrad import ExpGrad
 from solver_comparison.solvers.lbfgs import LBFGS
@@ -16,7 +16,7 @@ def normalize(weights):
     return _weights / np.sum(_weights)
 
 
-class ToyModel(SimplexModel):
+class ToyModel(Model):
     def __init__(
         self,
         data: NDArray,

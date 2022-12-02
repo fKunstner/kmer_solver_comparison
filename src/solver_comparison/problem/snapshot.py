@@ -3,7 +3,7 @@ from typing import Optional, Tuple
 
 from numpy.typing import NDArray
 
-from solver_comparison.problem.model import KmerModel
+from solver_comparison.problem.model import Model
 
 
 @dataclass
@@ -13,7 +13,7 @@ class Snapshot:
     Primarily used to cache function/gradient evaluations for logging.
     """
 
-    model: KmerModel
+    model: Model
     param: NDArray
     _g: Optional[NDArray] = field(default=None, init=False)
     _f: Optional[float] = field(default=None, init=False)

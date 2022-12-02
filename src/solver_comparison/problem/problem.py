@@ -6,7 +6,7 @@ from kmerexpr.rna_seq_reader import reads_to_y
 from kmerexpr.utils import Problem as KmerExprProblem
 from kmerexpr.utils import load_lengths, load_simulation_parameters
 
-from solver_comparison.problem.model import KmerModel, get_model
+from solver_comparison.problem.model import Model, get_model
 from solver_comparison.serialization import Serializable
 
 
@@ -39,7 +39,7 @@ class Problem(Serializable):
             self.filename, K=self.K, N=self.N, L=self.L, alpha=self.alpha
         )
 
-    def load_model(self) -> KmerModel:
+    def load_model(self) -> Model:
         """Creates data for the problem and loads the model -- Time hungry."""
         (ISO_FILE, READS_FILE, X_FILE, Y_FILE) = self.kmer_problem.get_path_names()
         sr.simulate_reads(self.kmer_problem, force_repeat=False)
@@ -47,9 +47,7 @@ class Problem(Serializable):
         tr.transcriptome_to_x(self.K, ISO_FILE, X_FILE, L=self.L)
         lengths = load_lengths(self.filename, self.N, self.L)
 
-        return get_model(self.model_type)(
-            X_FILE, Y_FILE, beta=self.beta, lengths=lengths, solver_name=None
-        )
+        return Model(self.model_type, X_FILE, Y_FILE, beta=self.beta, lengths=lengths)
 
     def load_simulation_parameters(self):
         return load_simulation_parameters(self.kmer_problem)

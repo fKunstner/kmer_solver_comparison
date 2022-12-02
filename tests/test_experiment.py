@@ -1,8 +1,7 @@
 import pytest
 
 from solver_comparison.experiment import Experiment
-from solver_comparison.plotting import make_individual_exp_plots
-from solver_comparison.problem.model import SIMPLEX, SOFTMAX, SimplexModel, SoftmaxModel
+from solver_comparison.problem.model import SIMPLEX, SOFTMAX
 from solver_comparison.problem.problem import Problem
 from solver_comparison.solvers.expgrad import ExpGrad
 from solver_comparison.solvers.initializer import Initializer
