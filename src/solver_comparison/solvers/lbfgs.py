@@ -36,7 +36,7 @@ class LBFGS(Optimizer):
             param,
             grad,
             pgtol=1e-12,
-            factr=0,
+            factr=1.0,
             maxiter=self.max_iter,
             maxfun=10 * self.max_iter,
             callback=lbfgs_callback,
