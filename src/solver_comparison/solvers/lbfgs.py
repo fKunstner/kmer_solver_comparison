@@ -5,7 +5,7 @@ from typing import ClassVar, Optional
 from numpy.typing import NDArray
 from scipy import optimize
 
-from solver_comparison.problem.snapshot import Snapshot
+from solver_comparison.problem.model import Model
 from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer
 
 
@@ -15,20 +15,15 @@ class LBFGS(Optimizer):
 
     solver_name: ClassVar[str] = "lbfgs"
 
-    def step(self, current: Snapshot) -> Snapshot:
-        raise ValueError
-
     def run(
         self,
-        snapshot: Snapshot,
+        model: Model,
+        param: NDArray,
         progress_callback: Optional[CallbackFunction] = None,
-    ) -> Snapshot:
-
-        model, init_param = snapshot.model, snapshot.param
-
-        def lbfgs_callback(param: NDArray):
+    ) -> NDArray:
+        def lbfgs_callback(_param: NDArray):
             if progress_callback is not None:
-                progress_callback(Snapshot(model, param), None)
+                progress_callback(_param, None)
 
         def func(theta):
             return -model.logp_grad(theta)[0]
@@ -38,7 +33,7 @@ class LBFGS(Optimizer):
 
         final_param, f_sol, dict_flags_convergence = optimize.fmin_l_bfgs_b(
             func,
-            init_param,
+            param,
             grad,
             pgtol=1e-12,
             factr=0,
@@ -60,4 +55,4 @@ class LBFGS(Optimizer):
                 "Softmax model did not converge due to:", dict_flags_convergence["task"]
             )
 
-        return Snapshot(model, final_param)
+        return final_param

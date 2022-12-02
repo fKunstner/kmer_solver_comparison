@@ -6,7 +6,6 @@ from numpy.typing import NDArray
 from scipy.special import softmax
 
 from solver_comparison.problem.model import SIMPLEX, SOFTMAX, Model
-from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.solvers.expgrad import ExpGrad
 from solver_comparison.solvers.lbfgs import LBFGS
 
@@ -101,7 +100,7 @@ weights_unbalanced = normalize([1, 100, 100])
 
 
 @pytest.mark.parametrize(
-    "optimizer,data,start,expected",
+    "optimizer,data,param_start,expected",
     [
         (ExpGrad(), data_uniform, weights_uniform, weights_uniform),
         (ExpGrad(), data_uniform, weights_shifted, weights_uniform),
@@ -120,12 +119,11 @@ weights_unbalanced = normalize([1, 100, 100])
 def test_simplex_models(
     optimizer,
     data,
-    start,
+    param_start,
     expected,
 ):
     np.seterr(all="raise")
     use_softmax = isinstance(optimizer, LBFGS)
     toy_model = ToyModel(data, use_softmax=use_softmax)
-    snapshot = Snapshot(toy_model, start)
-    out_snapshot = optimizer.run(snapshot)
-    assert np.allclose(toy_model.probabilities(out_snapshot.param), expected)
+    param_end = optimizer.run(toy_model, param_start)
+    assert np.allclose(toy_model.probabilities(param_end), expected)

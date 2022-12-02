@@ -2,9 +2,10 @@ from dataclasses import dataclass
 from typing import ClassVar, Optional
 
 from kmerexpr.exp_grad_solver import exp_grad_solver
+from numpy.typing import NDArray
 
 from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
-from solver_comparison.problem.snapshot import Snapshot
+from solver_comparison.problem.model import Model
 from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer
 
 
@@ -20,10 +21,11 @@ class ExpGrad(Optimizer):
     solver_name: ClassVar[str] = "exp_grad"
 
     def run(
-        self, curr_p: Snapshot, progress_callback: Optional[CallbackFunction] = None
-    ) -> Snapshot:
-
-        model, param = curr_p.model, curr_p.param
+        self,
+        model: Model,
+        param: NDArray,
+        progress_callback: Optional[CallbackFunction] = None,
+    ) -> NDArray:
 
         dict_sol = exp_grad_solver(
             loss_grad=model.logp_grad,
@@ -35,4 +37,4 @@ class ExpGrad(Optimizer):
             verbose=False,
         )
 
-        return Snapshot(model, dict_sol["x"])
+        return dict_sol["x"]

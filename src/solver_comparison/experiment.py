@@ -14,8 +14,8 @@ from solver_comparison.logging.expfiles import exp_filepaths
 from solver_comparison.logging.progress_logger import ExperimentProgressLogger
 from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
 from solver_comparison.logging.utils import runtime
+from solver_comparison.problem.model import Model
 from solver_comparison.problem.problem import Problem
-from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.serialization import Serializable
 from solver_comparison.solvers.initializer import Initializer
 from solver_comparison.solvers.optimizer import Optimizer
@@ -46,7 +46,7 @@ class Experiment(Serializable):
             and os.path.isfile(summary_file)
         )
 
-    def _startup(self) -> Tuple[Snapshot, DataLogger]:
+    def _startup(self) -> Tuple[Model, NDArray, DataLogger]:
         """Loads the model, initialize parameters, create the datalogger."""
         datalogger = DataLogger(exp_id=self.hash(), exp_conf=self.as_dict())
 
@@ -60,12 +60,10 @@ class Experiment(Serializable):
         logger.info(f"Problem initialized in {loading_time.time:.2f}s")
 
         param = self.init.initialize_model(model)
-        return Snapshot(model=model, param=param), datalogger
+        return model, param, datalogger
 
     def run(self):
-        curr_p, datalogger = self._startup()
-
-        model = curr_p.model
+        model, param, datalogger = self._startup()
 
         start_time = time.perf_counter()
         progress_logger = ExperimentProgressLogger()
@@ -75,7 +73,7 @@ class Experiment(Serializable):
         max_iter = self.opt.max_iter
 
         def progress_callback(
-            param_or_snap: Union[Snapshot, NDArray],
+            param: NDArray,
             other: Optional[Dict[str, Any]] = None,
         ):
             curr_time = time.perf_counter()
@@ -83,18 +81,13 @@ class Experiment(Serializable):
             nonlocal curr_iter
             curr_iter += 1
 
-            snapshot = (
-                param_or_snap
-                if isinstance(param_or_snap, Snapshot)
-                else Snapshot(model, param_or_snap)
-            )
-
             progress_logger.tick(
-                max_iter=max_iter, curr_iter=curr_iter, snapshot=snapshot
+                max_iter=max_iter, curr_iter=curr_iter, model_and_params=(model, param)
             )
-            saved_parameters.update(snapshot.param)
+            saved_parameters.update(param)
 
-            param, func_val, grad_val = snapshot.pfg()
+            func_val, grad_val = model.logp_grad(param, nograd=False)
+
             datalogger.log(
                 {
                     "time": curr_time - start_time,
@@ -112,16 +105,16 @@ class Experiment(Serializable):
             datalogger.end_step()
 
         # Log initialization
-        progress_callback(curr_p)
+        progress_callback(param)
 
-        end_snapshot = self.opt.run(curr_p, progress_callback)
-
+        param_end = self.opt.run(model, param, progress_callback)
+        func, grad = model.logp_grad(param_end, nograd=False)
         datalogger.summary(
             {
-                "x": end_snapshot.model.probabilities(end_snapshot.param).tolist(),
-                "loss_records": end_snapshot.func(),
+                "x": model.probabilities(param_end).tolist(),
+                "loss_records": func,
                 "iteration_counts": curr_iter,
-                "grad": end_snapshot.grad().tolist(),
+                "grad": grad,
                 "xs": saved_parameters.get(),
             }
         )

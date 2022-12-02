@@ -1,11 +1,12 @@
 import time
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
+from numpy.typing import NDArray
 
 from solver_comparison.logging.rate_limited_logger import RateLimitedLogger
 from solver_comparison.logging.utils import seconds_to_human_readable
-from solver_comparison.problem.snapshot import Snapshot
+from solver_comparison.problem.model import Model
 
 
 class ExperimentProgressLogger:
@@ -13,7 +14,12 @@ class ExperimentProgressLogger:
         self.timelogger = RateLimitedLogger(time_interval=log_every)
         self.start_time = time.perf_counter()
 
-    def tick(self, max_iter: int, curr_iter: int, snapshot: Optional[Snapshot]):
+    def tick(
+        self,
+        max_iter: int,
+        curr_iter: int,
+        model_and_params: Optional[Tuple[Model, NDArray]] = None,
+    ):
         i = curr_iter
         progress = curr_iter / max_iter
         i_width = len(str(max_iter))
@@ -34,8 +40,9 @@ class ExperimentProgressLogger:
             time_str = f"{run_h:>3}/{eta_h:>3} ({rem_h:>3} rem.)"
 
         data_str = ""
-        if snapshot is not None:
-            func, grad = snapshot.func(), snapshot.grad()
+        if model_and_params is not None:
+            model, param = model_and_params
+            func, grad = model.logp_grad(param, nograd=False)
             data_str = f"Loss={func:.2e}, gnorm={np.linalg.norm(grad):.2e}"
 
         self.timelogger.log(f"{iter_str } [{time_str:>18}] - {data_str}")
