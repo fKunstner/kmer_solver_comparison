@@ -11,7 +11,8 @@ help:
 	@echo "lint           Run pylint"
 
 test:
-	@pytest -vx tests --cov=src --cov-report html:cov_html
+	@pytest -vx tests
+	
 
 format:
 	@echo "Isort"
