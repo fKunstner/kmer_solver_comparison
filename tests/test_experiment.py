@@ -20,7 +20,7 @@ problem_simplex = Problem(
     "optimizer,problem",
     [(ExpGrad(), problem_simplex), (LBFGS(), problem_softmax)],
 )
-def test_simplex_models(optimizer, problem):
+def test_no_error_on_simple_experiment(optimizer, problem):
     Experiment(
         prob=problem,
         opt=optimizer,

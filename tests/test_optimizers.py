@@ -116,7 +116,7 @@ weights_unbalanced = normalize([1, 100, 100])
         (LBFGS(), data_shifted, weights_unbalanced, weights_shifted),
     ],
 )
-def test_simplex_models(
+def test_optimizers(
     optimizer,
     data,
     param_start,
