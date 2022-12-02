@@ -35,7 +35,7 @@ class ExperimentProgressLogger:
 
         data_str = ""
         if snapshot is not None:
-            f, g = snapshot.f(), snapshot.g()
-            data_str = f"Loss={f:.2e}, gnorm={np.linalg.norm(g):.2e}"
+            func, grad = snapshot.func(), snapshot.grad()
+            data_str = f"Loss={func:.2e}, gnorm={np.linalg.norm(grad):.2e}"
 
         self.timelogger.log(f"{iter_str } [{time_str:>18}] - {data_str}")

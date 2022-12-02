@@ -15,21 +15,21 @@ class OnlineSequenceSummary:
     This utility approximates this when T is unknown.
 
     Args:
-        n (int): Number of samples to save.
+        n_to_save (int): Number of samples to save.
             The list will also separately save the first and last value seen.
     """
 
-    def __init__(self, n: int):
+    def __init__(self, n_to_save: int):
         self.first = None
         self.last = None
-        self.saved = [None] * n
-        self.it_saved = [None] * n
-        self.it_to_save = [i + 1 for i in range(n)]
+        self.saved = [None] * n_to_save
+        self.it_saved = [None] * n_to_save
+        self.it_to_save = [i + 1 for i in range(n_to_save)]
         self.iteration = 0
 
-    def update(self, x):
+    def update(self, value):
         if self.iteration == 0:
-            self.first = deepcopy(x)
+            self.first = deepcopy(value)
 
         else:
             if self.iteration > self.it_to_save[-1]:
@@ -47,16 +47,16 @@ class OnlineSequenceSummary:
                     iteration_to_discard = min(iterations_no_longer_needed)
                     index = self.it_saved.index(iteration_to_discard)
 
-                self.saved[index] = copy.deepcopy(x)
+                self.saved[index] = copy.deepcopy(value)
                 self.last = self.saved[index]
                 self.it_saved[index] = self.iteration
             else:
-                self.last = copy.deepcopy(x)
+                self.last = copy.deepcopy(value)
         self.iteration += 1
 
     def get(self):
-        iterations = [0] + [x for x in self.it_saved if x is not None]
-        data = [self.first] + [x for x in self.saved if x is not None]
+        iterations = [0] + [_ for _ in self.it_saved if _ is not None]
+        data = [self.first] + [_ for _ in self.saved if _ is not None]
 
         last_element_already_in_list = (self.iteration - 1) in self.it_saved
         if not last_element_already_in_list and self.last is not None:

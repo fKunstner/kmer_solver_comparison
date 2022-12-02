@@ -59,8 +59,8 @@ class Experiment(Serializable):
         datalogger.log({"model_load_time": loading_time.time})
         logger.info(f"Problem initialized in {loading_time.time:.2f}s")
 
-        p = self.init.initialize_model(model)
-        return Snapshot(model=model, param=p), datalogger
+        param = self.init.initialize_model(model)
+        return Snapshot(model=model, param=param), datalogger
 
     def run(self):
         curr_p, datalogger = self._startup()
@@ -69,13 +69,13 @@ class Experiment(Serializable):
 
         start_time = time.perf_counter()
         progress_logger = ExperimentProgressLogger()
-        saved_parameters = OnlineSequenceSummary(n=20)
+        saved_parameters = OnlineSequenceSummary(n_to_save=20)
 
         curr_iter = 0
         max_iter = self.opt.max_iter
 
         def progress_callback(
-            x: Union[Snapshot, NDArray],
+            param_or_snap: Union[Snapshot, NDArray],
             other: Optional[Dict[str, Any]] = None,
         ):
             curr_time = time.perf_counter()
@@ -83,24 +83,28 @@ class Experiment(Serializable):
             nonlocal curr_iter
             curr_iter += 1
 
-            snapshot = x if isinstance(x, Snapshot) else Snapshot(model, x)
+            snapshot = (
+                param_or_snap
+                if isinstance(param_or_snap, Snapshot)
+                else Snapshot(model, param_or_snap)
+            )
 
             progress_logger.tick(
                 max_iter=max_iter, curr_iter=curr_iter, snapshot=snapshot
             )
-            saved_parameters.update(snapshot.p())
+            saved_parameters.update(snapshot.param)
 
-            p, f, g = snapshot.pfg()
+            param, func_val, grad_val = snapshot.pfg()
             datalogger.log(
                 {
                     "time": curr_time - start_time,
-                    "f": f,
-                    "|g|_1": np.linalg.norm(g, ord=1),
-                    "|g|_2": np.linalg.norm(g, ord=2),
-                    "|g|_inf": np.linalg.norm(g, ord=np.inf),
-                    "|p|_1": np.linalg.norm(p, ord=1),
-                    "|p|_2": np.linalg.norm(p, ord=2),
-                    "|p|_inf": np.linalg.norm(p, ord=np.inf),
+                    "func_val": func_val,
+                    "|grad_val|_1": np.linalg.norm(grad_val, ord=1),
+                    "|grad_val|_2": np.linalg.norm(grad_val, ord=2),
+                    "|grad_val|_inf": np.linalg.norm(grad_val, ord=np.inf),
+                    "|param|_1": np.linalg.norm(param, ord=1),
+                    "|param|_2": np.linalg.norm(param, ord=2),
+                    "|param|_inf": np.linalg.norm(param, ord=np.inf),
                 }
             )
             if other is not None:
@@ -110,14 +114,14 @@ class Experiment(Serializable):
         # Log initialization
         progress_callback(curr_p)
 
-        curr_p = self.opt.run(curr_p, progress_callback)
+        end_snapshot = self.opt.run(curr_p, progress_callback)
 
         datalogger.summary(
             {
-                "x": curr_p.model.probabilities(curr_p.param).tolist(),
-                "loss_records": curr_p.f(),
+                "x": end_snapshot.model.probabilities(end_snapshot.param).tolist(),
+                "loss_records": end_snapshot.func(),
                 "iteration_counts": curr_iter,
-                "grad": curr_p.g().tolist(),
+                "grad": end_snapshot.grad().tolist(),
                 "xs": saved_parameters.get(),
             }
         )

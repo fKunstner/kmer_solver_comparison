@@ -24,9 +24,9 @@ testdata = [
 ]
 
 
-@pytest.mark.parametrize("n, inputs, expected_output", testdata)
-def test_OnlineSequenceSummary(inputs, n, expected_output):
-    summarizer = OnlineSequenceSummary(n=n)
+@pytest.mark.parametrize("n_to_save, inputs, expected_output", testdata)
+def test_OnlineSequenceSummary(n_to_save, inputs, expected_output):
+    summarizer = OnlineSequenceSummary(n_to_save=n_to_save)
 
     for input in inputs:
         summarizer.update(input)

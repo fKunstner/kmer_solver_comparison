@@ -26,15 +26,15 @@ class Optimizer(ABC, Serializable):
         self.iter = 0
 
     def should_stop(self, curr_p: Snapshot, old_p: Snapshot):
-        df, dp, dg = (
-            curr_p.f() - old_p.f(),
-            curr_p.p() - old_p.p(),
-            curr_p.g() - old_p.g(),
+        diff_func, diff_param, diff_grad = (
+            curr_p.func() - old_p.func(),
+            curr_p.param - old_p.param,
+            curr_p.grad() - old_p.grad(),
         )
         i_check = self.iter > self.max_iter
-        f_check = np.abs(df) <= self.f_tol
-        p_check = np.linalg.norm(dp) ** 2 <= self.p_tol
-        g_check = np.linalg.norm(dg) ** 2 <= self.g_tol
+        f_check = np.abs(diff_func) <= self.f_tol
+        p_check = np.linalg.norm(diff_param) ** 2 <= self.p_tol
+        g_check = np.linalg.norm(diff_grad) ** 2 <= self.g_tol
         return any([i_check, f_check, p_check, g_check])
 
     @abstractmethod

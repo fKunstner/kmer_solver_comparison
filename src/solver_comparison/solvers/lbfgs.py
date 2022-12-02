@@ -20,15 +20,15 @@ class LBFGS(Optimizer):
 
     def run(
         self,
-        curr_p: Snapshot,
+        snapshot: Snapshot,
         progress_callback: Optional[CallbackFunction] = None,
     ) -> Snapshot:
 
-        model, param = curr_p.model, curr_p.param
+        model, init_param = snapshot.model, snapshot.param
 
-        def lbfgs_callback(x: NDArray):
+        def lbfgs_callback(param: NDArray):
             if progress_callback is not None:
-                progress_callback(Snapshot(model, x), None)
+                progress_callback(Snapshot(model, param), None)
 
         def func(theta):
             return -model.logp_grad(theta)[0]
@@ -36,9 +36,9 @@ class LBFGS(Optimizer):
         def grad(theta):
             return -model.logp_grad(theta)[1]
 
-        theta_sol, f_sol, dict_flags_convergence = optimize.fmin_l_bfgs_b(
+        final_param, f_sol, dict_flags_convergence = optimize.fmin_l_bfgs_b(
             func,
-            param,
+            init_param,
             grad,
             pgtol=1e-12,
             factr=0,
@@ -60,4 +60,4 @@ class LBFGS(Optimizer):
                 "Softmax model did not converge due to:", dict_flags_convergence["task"]
             )
 
-        return Snapshot(model, theta_sol)
+        return Snapshot(model, final_param)

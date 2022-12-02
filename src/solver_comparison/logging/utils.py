@@ -3,27 +3,27 @@ from copy import deepcopy
 from typing import Any, Dict, Optional
 
 
-def normalize_flatten_dict(d: Dict[str, Any], sep: str = "."):
+def normalize_flatten_dict(a_dict: Dict[str, Any], sep: str = "."):
     """Converts a nested dict with string keys to a flat dict."""
 
-    def _normalize_flatten_dict(_d: Dict[str, Any], prefix: Optional[str] = None):
-        if not isinstance(_d, dict):
+    def _normalize_flatten_dict(_a_dict: Dict[str, Any], prefix: Optional[str] = None):
+        if not isinstance(_a_dict, dict):
             raise ValueError("Only works on dictionaries")
-        for k in _d.keys():
-            if not isinstance(k, str):
+        for key in _a_dict.keys():
+            if not isinstance(key, str):
                 raise ValueError(
-                    f"Cannot normalize dictionary with non-string key: {k}."
+                    f"Cannot normalize dictionary with non-string key: {key}."
                 )
         new_d = {}
-        for k, v in _d.items():
-            new_k = (prefix + sep + k) if prefix is not None else k
-            if isinstance(v, dict):
-                new_d.update(_normalize_flatten_dict(v, prefix=new_k))
+        for key, val in _a_dict.items():
+            new_k = (prefix + sep + key) if prefix is not None else key
+            if isinstance(val, dict):
+                new_d.update(_normalize_flatten_dict(val, prefix=new_k))
             else:
-                new_d[new_k] = deepcopy(v)
+                new_d[new_k] = deepcopy(val)
         return new_d
 
-    return _normalize_flatten_dict(d)
+    return _normalize_flatten_dict(a_dict)
 
 
 class runtime:

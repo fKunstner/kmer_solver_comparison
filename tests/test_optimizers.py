@@ -1,91 +1,91 @@
 from functools import partial
-from typing import Literal, Union
 
 import numpy as np
 import pytest
 from numpy.typing import NDArray
 from scipy.special import softmax
 
-from solver_comparison.problem.model import Simplex, SimplexModel, Softmax
+from solver_comparison.problem.model import SIMPLEX, SOFTMAX, SimplexModel
 from solver_comparison.problem.snapshot import Snapshot
 from solver_comparison.solvers.expgrad import ExpGrad
 from solver_comparison.solvers.lbfgs import LBFGS
 
 
-def normalize(ws):
-    w = np.array(ws).astype(float)
-    return w / np.sum(w)
+def normalize(weights):
+    _weights = np.array(weights).astype(float)
+    return _weights / np.sum(_weights)
 
 
 class ToyModel(SimplexModel):
     def __init__(
         self,
-        X: NDArray,
+        data: NDArray,
         use_softmax,
     ):
-        self.X = X
+        self.data = data
         self.use_softmax = use_softmax
 
     def probabilities(self, w):
         return softmax(w) if self.use_softmax else w
 
     def logp_grad(self, theta=None, nograd=False, Hessinv=None, *args, **kwargs):
-        n, d = self.X.shape
+        n_samples = self.data.shape[0]
 
-        def f(w):
-            p = softmax(w) if self.use_softmax else w
-            return np.mean(np.log(self.X @ p))
+        def func(param):
+            probs = softmax(param) if self.use_softmax else param
+            return np.mean(np.log(self.data @ probs))
 
-        def g(w):
-            p = softmax(w) if self.use_softmax else w
-            x_times_p = self.X @ p
-            grad = np.einsum("nd,n->d", self.X, 1 / x_times_p) / n
+        def grad(param):
+            probs = softmax(param) if self.use_softmax else param
+            x_times_p = self.data @ probs
+            _grad = np.einsum("nd,n->d", self.data, 1 / x_times_p) / n_samples
 
             if self.use_softmax:
-                pvec = p.reshape((-1, 1))
-                correction = np.diag(p) - pvec @ pvec.T
-                grad = correction @ grad
+                probs_vec = probs.reshape((-1, 1))
+                correction = np.diag(probs) - probs_vec @ probs_vec.T
+                _grad = correction @ _grad
 
-            return grad
+            return _grad
 
         if nograd:
-            return f(theta)
+            return func(theta)
         else:
-            return f(theta), g(theta)
+            return func(theta), grad(theta)
 
 
 @pytest.mark.parametrize("use_softmax", [False, True])
 def test_gradients(use_softmax):
-    toy_model = ToyModel(Xuniform, use_softmax=use_softmax)
+    toy_model = ToyModel(data_uniform, use_softmax=use_softmax)
 
-    def gradient_finite_differences(func, x):
-        n = np.shape(x)[0]
-        delta = 2 * np.sqrt(1e-12) * (1 + np.linalg.norm(x))
-        g = np.zeros(n)
-        e_i = np.zeros(n)
-        for i in range(n):
+    def gradient_finite_differences(func, param):
+        n_dim = np.shape(param)[0]
+        delta = 2 * np.sqrt(1e-12) * (1 + np.linalg.norm(param))
+        grad = np.zeros(n_dim)
+        e_i = np.zeros(n_dim)
+        for i in range(n_dim):
             e_i[i] = 1
-            fxp = func(x + delta * e_i)
-            fxm = func(x - delta * e_i)
-            g[i] = (fxp - fxm) / (2 * delta)
+            fxp = func(param + delta * e_i)
+            fxm = func(param - delta * e_i)
+            grad[i] = (fxp - fxm) / (2 * delta)
             e_i[i] = 0
-        return g
+        return grad
 
-    _, g = toy_model.logp_grad(w0_shifted)
+    _, grad_val = toy_model.logp_grad(weights_shifted)
+
     func = partial(toy_model.logp_grad, nograd=True)
-    g_num = gradient_finite_differences(func, w0_shifted)
+    grad_numerical = gradient_finite_differences(func, weights_shifted)
 
-    assert np.allclose(g, g_num)
+    assert np.allclose(grad_val, grad_numerical)
 
 
-Xuniform = np.array(
+data_uniform = np.array(
     [
         [1, 0, 0],
         [0, 1, 0],
         [0, 0, 1],
     ]
 ).astype(float)
-Xshifted = np.array(
+data_shifted = np.array(
     [
         [1, 0, 0],
         [0, 1, 0],
@@ -95,37 +95,37 @@ Xshifted = np.array(
     ]
 ).astype(float)
 
-w0_uniform = normalize([1, 1, 1])
-w0_shifted = normalize([1, 1, 3])
-w0_very_shifted = normalize([1, 100, 100])
+weights_uniform = normalize([1, 1, 1])
+weights_shifted = normalize([1, 1, 3])
+weights_unbalanced = normalize([1, 100, 100])
 
 
 @pytest.mark.parametrize(
-    "optimizer,X,start,expected",
+    "optimizer,data,start,expected",
     [
-        (ExpGrad(), Xuniform, w0_uniform, w0_uniform),
-        (ExpGrad(), Xuniform, w0_shifted, w0_uniform),
-        (ExpGrad(), Xuniform, w0_very_shifted, w0_uniform),
-        (ExpGrad(), Xshifted, w0_uniform, w0_shifted),
-        (ExpGrad(), Xshifted, w0_shifted, w0_shifted),
-        (ExpGrad(), Xshifted, w0_very_shifted, w0_shifted),
-        (LBFGS(), Xuniform, w0_uniform, w0_uniform),
-        (LBFGS(), Xuniform, w0_shifted, w0_uniform),
-        (LBFGS(), Xuniform, w0_very_shifted, w0_uniform),
-        (LBFGS(), Xshifted, w0_uniform, w0_shifted),
-        (LBFGS(), Xshifted, w0_shifted, w0_shifted),
-        (LBFGS(), Xshifted, w0_very_shifted, w0_shifted),
+        (ExpGrad(), data_uniform, weights_uniform, weights_uniform),
+        (ExpGrad(), data_uniform, weights_shifted, weights_uniform),
+        (ExpGrad(), data_uniform, weights_unbalanced, weights_uniform),
+        (ExpGrad(), data_shifted, weights_uniform, weights_shifted),
+        (ExpGrad(), data_shifted, weights_shifted, weights_shifted),
+        (ExpGrad(), data_shifted, weights_unbalanced, weights_shifted),
+        (LBFGS(), data_uniform, weights_uniform, weights_uniform),
+        (LBFGS(), data_uniform, weights_shifted, weights_uniform),
+        (LBFGS(), data_uniform, weights_unbalanced, weights_uniform),
+        (LBFGS(), data_shifted, weights_uniform, weights_shifted),
+        (LBFGS(), data_shifted, weights_shifted, weights_shifted),
+        (LBFGS(), data_shifted, weights_unbalanced, weights_shifted),
     ],
 )
 def test_simplex_models(
     optimizer,
-    X,
+    data,
     start,
     expected,
 ):
     np.seterr(all="raise")
     use_softmax = isinstance(optimizer, LBFGS)
-    toymodel = ToyModel(X, use_softmax=use_softmax)
-    snapshot = Snapshot(toymodel, start)
+    toy_model = ToyModel(data, use_softmax=use_softmax)
+    snapshot = Snapshot(toy_model, start)
     out_snapshot = optimizer.run(snapshot)
-    assert np.allclose(toymodel.probabilities(out_snapshot.param), expected)
+    assert np.allclose(toy_model.probabilities(out_snapshot.param), expected)

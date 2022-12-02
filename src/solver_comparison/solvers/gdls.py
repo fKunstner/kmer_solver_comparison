@@ -65,9 +65,9 @@ class GDLS(Optimizer):
 
     def step(self, current: Snapshot) -> Tuple[Snapshot, Dict[str, Any]]:
         def newpoint(ss: float) -> NDArray:
-            return current.param - ss * current.g()
+            return current.param - ss * current.grad()
 
-        f_curr, g_curr = current.f(), current.g()
+        f_curr, g_curr = current.func(), current.grad()
         curr_grad_norm = self.c * np.linalg.norm(g_curr) ** 2
         self.curr_ss = self.incr * self.curr_ss
 
@@ -79,7 +79,7 @@ class GDLS(Optimizer):
             new = Snapshot(param=newpoint(self.curr_ss), model=current.model)
 
             try:
-                f_new = new.f()
+                f_new = new.func()
             except FloatingPointError:
                 logging.getLogger(__name__).debug(
                     f"Overflow in linesearch with step-size {self.curr_ss:.2e}"

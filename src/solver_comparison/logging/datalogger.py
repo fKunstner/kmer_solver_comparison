@@ -58,8 +58,8 @@ class DataLogger:
         Args:
             kwargs: dictionary of data to log
         """
-        for k, v in kwargs.items():
-            self._current_dict[deepcopy(k)] = deepcopy(v)
+        for key, val in kwargs.items():
+            self._current_dict[deepcopy(key)] = deepcopy(val)
 
     def summary(self, kwargs: dict) -> None:
         """Pass a summary dictionary to be saved separately.
@@ -69,8 +69,8 @@ class DataLogger:
         Args:
             kwargs: dictionary of data to log
         """
-        for k, v in kwargs.items():
-            self._summary[deepcopy(k)] = deepcopy(v)
+        for key, val in kwargs.items():
+            self._summary[deepcopy(key)] = deepcopy(val)
 
     def save(self):
         """Saved the data as a csv.

@@ -10,11 +10,11 @@ class SoftmaxModel(multinomial_model):
         return softmax(theta)
 
     def logp_grad(self, theta=None, nograd=False):
-        f, g = super().logp_grad(theta)
+        func, grad = super().logp_grad(theta)
         if nograd:
-            return f
+            return func
         else:
-            return f, g
+            return func, grad
 
 
 class SimplexModel(multinomial_simplex_model):
@@ -23,16 +23,16 @@ class SimplexModel(multinomial_simplex_model):
 
 
 KmerModel = Union[SoftmaxModel, SimplexModel]
-Simplex = "Simplex"
-Softmax = "Softmax"
+SIMPLEX = "Simplex"
+SOFTMAX = "Softmax"
 
 
 def get_model(name: str):
-    if name not in [Simplex, Softmax]:
+    if name not in [SIMPLEX, SOFTMAX]:
         raise ValueError(
-            f"Unknown model type {name}, " f"expected one of [{Simplex}, {Softmax}]."
+            f"Unknown model type {name}, " f"expected one of [{SIMPLEX}, {SOFTMAX}]."
         )
-    if name == Simplex:
+    if name == SIMPLEX:
         return SimplexModel
     else:
         return SoftmaxModel
