@@ -1,3 +1,4 @@
+import warnings
 from dataclasses import dataclass
 from typing import ClassVar, Optional
 
@@ -47,17 +48,16 @@ class LBFGS(Optimizer):
         )
 
         if dict_flags_convergence["warnflag"] == 1:
-            print(
-                "WARNING: softmax model did not converge. "
+            warnings.warn(
+                "softmax model did not converge. "
                 "Too many function evaluations or too many iterations. "
+                f"Total iterations: {dict_flags_convergence['nit']}"
                 "Print d[task]:",
                 dict_flags_convergence["task"],
             )
-            print("Total iterations: ", str(dict_flags_convergence["nit"]))
         elif dict_flags_convergence["warnflag"] == 2:
-            print(
-                "WARNING: softmax model did not converge due to: ",
-                dict_flags_convergence["task"],
+            warnings.warn(
+                "Softmax model did not converge due to:", dict_flags_convergence["task"]
             )
 
         return Snapshot(model, theta_sol)

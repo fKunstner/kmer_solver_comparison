@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Literal
 
 import numpy as np
@@ -32,29 +33,20 @@ class ToyModel(Simplex):
         elif self.model == "Logistic":
             return softmax(w)
 
-    def logp_grad(self, theta=None, nograd=False, **kwargs):
+    def logp_grad(self, theta=None, nograd=False, Hessinv=None, *args, **kwargs):
         n, d = self.X.shape
 
         sign = -1 if self.direction == "minimize" else 1
 
         def f(w):
-            if self.model == "Logistic":
-                p = softmax(w)
-            else:
-                p = w
-            f = sign * np.mean(np.log(self.X @ p))
-            print(f)
-            return f
+            p = softmax(w) if self.model == "Logistic" else w
+            return sign * np.mean(np.log(self.X @ p))
 
         def g(w):
-            if self.model == "Logistic":
-                p = softmax(w)
-            else:
-                p = w
-            print(w, p)
+            p = softmax(w) if self.model == "Logistic" else w
+            x_times_p = self.X @ p
+            grad = np.einsum("nd,n->d", self.X, 1 / x_times_p) / n
 
-            Xp = self.X @ p
-            grad = np.einsum("nd,n->d", self.X, 1 / Xp) / n
             if self.model == "Logistic":
                 pvec = p.reshape((-1, 1))
                 correction = np.diag(p) - pvec @ pvec.T
@@ -70,11 +62,9 @@ class ToyModel(Simplex):
 
 @pytest.mark.parametrize("model", ["Simplex", "Logistic"])
 def test_gradients(model: Literal["Simplex", "Logistic"]):
-    toymodel = ToyModel(Xuniform, direction="maximize", model=model)
+    toy_model = ToyModel(Xuniform, direction="maximize", model=model)
 
-    f, g = toymodel.logp_grad(w0_shifted)
-
-    def numGrad(func, x):
+    def gradient_finite_differences(func, x):
         n = np.shape(x)[0]
         delta = 2 * np.sqrt(1e-12) * (1 + np.linalg.norm(x))
         g = np.zeros(n)
@@ -87,9 +77,11 @@ def test_gradients(model: Literal["Simplex", "Logistic"]):
             e_i[i] = 0
         return g
 
-    gnum = numGrad(lambda w: toymodel.logp_grad(w, nograd=True), w0_shifted)
+    _, g = toy_model.logp_grad(w0_shifted)
+    func = partial(toy_model.logp_grad, nograd=True)
+    g_num = gradient_finite_differences(func, w0_shifted)
 
-    assert np.allclose(g, gnum)
+    assert np.allclose(g, g_num)
 
 
 Xuniform = np.array(
@@ -140,12 +132,7 @@ def test_simplex_models(
     expected,
 ):
     np.seterr(all="raise")
-
     toymodel = ToyModel(X, direction=direction, model=model)
-
     snapshot = Snapshot(toymodel, start)
-    out_snapshot = optimizer.run(
-        snapshot, lambda x, y: print("ITER ==============================")
-    )
-
+    out_snapshot = optimizer.run(snapshot)
     assert np.allclose(toymodel.probabilities(out_snapshot.param), expected)

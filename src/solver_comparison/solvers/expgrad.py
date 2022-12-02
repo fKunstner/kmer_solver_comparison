@@ -35,8 +35,4 @@ class ExpGrad(Optimizer):
             verbose=False,
         )
 
-        xs_summary = OnlineSequenceSummary(n=20)
-        for x in dict_sol["xs"]:
-            xs_summary.update(x)
-
         return Snapshot(model, dict_sol["x"])
