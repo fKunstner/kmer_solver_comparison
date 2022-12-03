@@ -5,11 +5,11 @@ from numpy.typing import NDArray
 from scipy.special import softmax
 
 
-class Loss:
+class Objective:
     pass
 
 
-class MultinomialSimplexLoss(Loss):
+class MultinomialSimplexObjective(Objective):
     def __init__(self, kmer_model: multinomial_simplex_model):
         self._model = kmer_model
         if self._model.beta != 1.0:
@@ -35,8 +35,17 @@ class MultinomialSimplexLoss(Loss):
         psi_probs = self._psi_probabilities(param)
         return self._func(psi_probs), self._grad(psi_probs)
 
+    def objfunc_along_direction(self, param, direction):
+        probs = self._psi_probabilities(param)
+        dprobs = self._model.xnnz.dot(direction)
 
-class MultinomialLoss(Loss):
+        def obj_for_stepsize(ss: float):
+            return self._func(probs + ss * dprobs)
+
+        return obj_for_stepsize
+
+
+class MultinomialObjective(Objective):
     def __init__(self, kmer_model: multinomial_model):
         self._model = kmer_model
 
@@ -66,3 +75,6 @@ class MultinomialLoss(Loss):
         probs = softmax(param)
         psi_probs = self._psi_probabilities(probs)
         return self._func(param, psi_probs), self._grad(param, probs, psi_probs)
+
+    def objfunc_along_direction(self, param, direction):
+        raise NotImplementedError

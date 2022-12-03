@@ -9,7 +9,7 @@ from solver_comparison.solvers.frank_wolfe import FrankWolfe
 from solver_comparison.solvers.initializer import Initializer
 from solver_comparison.solvers.lbfgs import LBFGS
 
-problem = "small"
+problem = "medium"
 
 if problem == "small":
     filename = "test5.fsa"

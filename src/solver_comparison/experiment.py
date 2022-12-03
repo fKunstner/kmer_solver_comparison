@@ -125,14 +125,14 @@ class Experiment(Serializable):
         datalogger.summary(
             {
                 "prob_end": model.probabilities(param_end).tolist(),
-                "loss_end": func,
+                "obj_end": func,
                 "grad_end": grad.tolist(),
                 "iter_end": curr_iter,
                 "probs": [
                     model.probabilities(x["param"]).tolist() for x in saved_values
                 ],
                 "params": [x["param"].tolist() for x in saved_values],
-                "funcs": [x["func"] for x in saved_values],
+                "objs": [x["func"] for x in saved_values],
                 "grads_l0": [x["grad_l0"] for x in saved_values],
                 "grads_l1": [x["grad_l1"] for x in saved_values],
                 "grads_l2": [x["grad_l2"] for x in saved_values],

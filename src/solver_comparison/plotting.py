@@ -79,7 +79,9 @@ def convert_summary_to_dict_results(summary):
     dict_results = {
         "x": summary["prob_end"],
         "xs": summary["probs"],
-        "loss_records": summary["funcs"],
+        # Todo: "Loss" is inaccurate, it's an objective and higher is better
+        # Requires a fix in kmerexpr
+        "loss_records": summary["objs"],
         "iteration_counts": summary["iters"],
         "grads_l0": summary["grads_l0"],
         "grads_l1": summary["grads_l1"],

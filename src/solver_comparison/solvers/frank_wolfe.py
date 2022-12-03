@@ -4,13 +4,9 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, Optional
 
 import numpy as np
-import scipy as sp
-from kmerexpr.exp_grad_solver import update_records
-from numpy import maximum, sqrt
 from numpy.linalg import norm
 from numpy.typing import NDArray
 from scipy import optimize
-from scipy.special import softmax as softmax
 
 from solver_comparison.problem.model import Model
 from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer
@@ -24,25 +20,26 @@ class FrankWolfe(Optimizer):
     pairwise_step: bool = False
     tol: float = 10 ** -20
     gtol: float = 10 ** -20
-    linesearch_stepsize_abs_tolerance: float = 1e-12
+    linesearch_stepsize_abs_tolerance: float = 1e-5
 
-    def step(self, curr_param: NDArray, loss: Callable, curr_grad: NDArray) -> NDArray:
-        imin = np.argmin(curr_grad)
+    def step(self, model: Model, curr_param: NDArray) -> NDArray:
+        curr_grad = model.logp_grad(curr_param)[1]
+
+        imax = np.argmax(curr_grad)
         param_target = np.zeros_like(curr_param)
-        param_target[imin] = 1.0
+        param_target[imax] = 1.0
+
         direction = param_target - curr_param
 
-        def loss_for_stepsize(trial_stepsize):
-            return loss(curr_param + trial_stepsize * direction)
+        objective_ss = model.objfunc_along_direction(curr_param, direction)
 
         result = optimize.minimize_scalar(
-            loss_for_stepsize,
+            lambda ss: -objective_ss(ss),
             bounds=(0.0, 1.0),
             method="Bounded",
             options={"xatol": self.linesearch_stepsize_abs_tolerance},
         )
         stepsize = result["x"]
-
         curr_param = curr_param + stepsize * direction
 
         return curr_param
@@ -50,17 +47,12 @@ class FrankWolfe(Optimizer):
     def run(
         self, model: Model, param: NDArray, callback: Optional[CallbackFunction] = None
     ) -> NDArray:
-        def loss(theta):
-            return -model.logp_grad(theta)[0]
-
-        def grad(theta):
-            return -model.logp_grad(theta)[1]
 
         curr_param = param
-        curr_grad = grad(curr_param)
+        curr_grad = model.logp_grad(curr_param)[1]
         for t in range(self.max_iter):
-            new_param = self.step(curr_param, loss, curr_grad)
-            new_grad = grad(new_param)
+            new_param = self.step(model, curr_param)
+            new_grad = model.logp_grad(new_param)[1]
 
             if callback is not None:
                 callback(new_param, None)

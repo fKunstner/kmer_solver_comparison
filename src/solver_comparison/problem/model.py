@@ -1,7 +1,17 @@
+from abc import abstractmethod
+from typing import Optional
+
+import numpy as np
 from kmerexpr.multinomial_model import multinomial_model
 from kmerexpr.multinomial_simplex_model import multinomial_simplex_model
 from numpy.typing import NDArray
 from scipy.special import softmax
+
+from solver_comparison.problem.objectives import (
+    MultinomialObjective,
+    MultinomialSimplexObjective,
+    Objective,
+)
 
 SIMPLEX = "Simplex"
 SOFTMAX = "Softmax"
@@ -56,29 +66,38 @@ class Model:
             lengths=lengths,
             solver_name=None,
         )
-        self._cache = _FunctionGradientCache()
 
-    def _logp_grad_simplex(self, param, nograd):
-        if nograd:
-            func = self.kmerexpr_model.logp_grad(param, nograd=nograd)
-            grad = None
+        self._objective: Objective
+        if isinstance(self.kmerexpr_model, multinomial_simplex_model):
+            self._objective = MultinomialSimplexObjective(self.kmerexpr_model)
+        elif isinstance(self.kmerexpr_model, multinomial_model):
+            self._objective = MultinomialObjective(self.kmerexpr_model)
         else:
-            func, grad = self.kmerexpr_model.logp_grad(param, nograd=nograd)
-        return func, grad
+            raise unknown_model_error(self.kmerexpr_model.__class__.__name__)
+
+        self._cache = _FunctionGradientCache()
 
     def logp_grad(self, param, nograd=False, Hessinv=False):
         if self._cache.is_in_cache(param, nograd):
             return self._cache.cached_values(nograd)
 
-        if self.model_type == SIMPLEX:
-            func, grad = self._logp_grad_simplex(param, nograd)
-        elif self.model_type == SOFTMAX:
-            func, grad = self.kmerexpr_model.logp_grad(param)
+        if Hessinv:
+            raise NotImplementedError("Hessian preconditioning not implemented")
+
+        if nograd:
+            func, grad = self._objective.func(param), None
         else:
-            raise ValueError(unknown_model_error(self.model_type))
+            func, grad = self._objective.func_and_grad(param)
 
         self._cache.cache(param, func, grad)
         return self._cache.cached_values(nograd)
+
+    def objfunc_along_direction(self, param, direction):
+        """Returns a function to evaluate stepsizes along given direction.
+
+        For simplex models, assumes the step-size is [0, 1].
+        """
+        return self._objective.objfunc_along_direction(param, direction)
 
     def probabilities(self, params):
         if self.model_type == SIMPLEX:

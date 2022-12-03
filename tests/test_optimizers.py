@@ -44,6 +44,12 @@ class ToyModel(Model):
     def probabilities(self, w):
         return softmax(w) if self.use_softmax else w
 
+    def objfunc_along_direction(self, param, direction):
+        def _f(ss: float):
+            return self.logp_grad(param + ss * direction)[0]
+
+        return _f
+
     def logp_grad(self, theta=None, nograd=False, Hessinv=None, *args, **kwargs):
         n_samples = self.data.shape[0]
 
@@ -158,14 +164,14 @@ def test_no_error_on_simple_experiment(problem):
 
     w0 = Initializer("simplex_uniform").initialize_model(model)
 
-    f_new, g_new = model._loss.func_and_grad(w0)
+    f_new, g_new = model._objective.func_and_grad(w0)
     f_old, g_old = model.kmerexpr_model.logp_grad(theta=w0)
     assert f_new == f_old
     assert np.allclose(g_new, g_old)
 
     w0 = normalize(w0 + np.random.randn(np.shape(w0)[0]) ** 2)
 
-    f_new, g_new = model._loss.func_and_grad(w0)
+    f_new, g_new = model._objective.func_and_grad(w0)
     f_old, g_old = model.kmerexpr_model.logp_grad(theta=w0)
     assert f_new == f_old
     assert np.allclose(g_new, g_old)

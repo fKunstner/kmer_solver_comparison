@@ -26,6 +26,8 @@ class ExpGrad(Optimizer):
     ) -> NDArray:
 
         dict_sol = exp_grad_solver(
+            # Todo: not a loss, an objective function (exp_grad maximizes)
+            # Needs a change in kmerexpr
             loss_grad=model.logp_grad,
             x_0=param,
             lrs="armijo",

@@ -43,6 +43,6 @@ class ExperimentProgressLogger:
         if model_and_params is not None:
             model, param = model_and_params
             func, grad = model.logp_grad(param, nograd=False)
-            data_str = f"Loss={func:.2e}, gnorm={np.linalg.norm(grad):.2e}"
+            data_str = f"Objective={func:.2e}, gnorm={np.linalg.norm(grad):.2e}"
 
         self.timelogger.log(f"{iter_str } [{time_str:>18}] - {data_str}")
