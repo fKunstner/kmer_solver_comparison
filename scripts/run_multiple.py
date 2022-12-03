@@ -5,11 +5,11 @@ from solver_comparison.plotting import make_comparison_plots, make_individual_ex
 from solver_comparison.problem.model import SIMPLEX, SOFTMAX
 from solver_comparison.problem.problem import Problem
 from solver_comparison.solvers.expgrad import ExpGrad
-from solver_comparison.solvers.frank_wolfe import FrankWolfe
-from solver_comparison.solvers.initializer import Initializer
+from solver_comparison.solvers.frank_wolfe import AwayFrankWolfe, FrankWolfe
+from solver_comparison.solvers.initializer import Initializer, InitUniform
 from solver_comparison.solvers.lbfgs import LBFGS
 
-problem = "medium"
+problem = "small"
 
 if problem == "small":
     filename = "test5.fsa"
@@ -17,7 +17,7 @@ if problem == "small":
     max_iter = 100
 elif problem == "medium":
     filename = "sampled_genome_0.01.fsa"
-    max_iter = 1000
+    max_iter = 200
     K, N, L, alpha = 14, 500000, 50, 0.1
 else:
     raise ValueError(f"Problem {problem} unknown")
@@ -30,23 +30,26 @@ experiments = [
     Experiment(
         prob=SoftmaxProblem(filename=filename, K=K, N=N, L=L, alpha=alpha, beta=1.0),
         opt=LBFGS(max_iter=max_iter),
-        init=Initializer("simplex_uniform"),
+        init=InitUniform(),
     ),
+] + [
     Experiment(
         prob=SimplexProblem(filename=filename, K=K, N=N, L=L, alpha=alpha, beta=1.0),
-        opt=ExpGrad(max_iter=max_iter),
-        init=Initializer("simplex_uniform"),
-    ),
-    Experiment(
-        prob=SimplexProblem(filename=filename, K=K, N=N, L=L, alpha=alpha, beta=1.0),
-        opt=FrankWolfe(max_iter=max_iter),
-        init=Initializer("simplex_uniform"),
-    ),
+        opt=opt,
+        init=InitUniform(),
+    )
+    for opt in [
+        ExpGrad(max_iter=max_iter),
+        FrankWolfe(max_iter=max_iter),
+        AwayFrankWolfe(max_iter=max_iter),
+    ]
 ]
 
 
 if __name__ == "__main__":
     for exp in experiments:
+        print(exp.as_dict())
+        print(exp.as_str())
         if not exp.has_already_run():
             exp.run()
 

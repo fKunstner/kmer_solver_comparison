@@ -1,4 +1,6 @@
+import re
 import time
+import unicodedata
 from copy import deepcopy
 from typing import Any, Dict, Optional
 
@@ -56,3 +58,11 @@ def seconds_to_human_readable(seconds):
             parts.append(f"{amount}{unit}")
             break
     return " ".join(parts) if len(parts) > 0 else "0s"
+
+
+def slugify(s: str):
+    """Convert to a filesystem-safe ASCII string."""
+    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii")
+    s = s.replace("[", "(").replace("]", ")")
+    s = re.sub(r"[^\w\s()-]", "", s.lower())
+    return re.sub(r"[-\s]+", "-", s).strip("-_")

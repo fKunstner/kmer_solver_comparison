@@ -34,7 +34,7 @@ def get_plot_base_filename(exp: Experiment, with_optimizer: bool = True):
     )
 
     if with_optimizer:
-        title += f"-init-{initializer.method}-{exp.opt.__class__.__name__}"
+        title += f"-init-{initializer.__class__.__name__}-{exp.opt.__class__.__name__}"
 
     return title
 

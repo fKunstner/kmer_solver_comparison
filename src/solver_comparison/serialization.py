@@ -48,11 +48,14 @@ class Serializable:
                 A simple structure representing the object
             """
             if isinstance(obj, Serializable) and is_dataclass(obj):
-                return {
-                    f.name: _serialize(getattr(obj, f.name))
-                    for f in fields(obj)
-                    if f.init
-                }
+                return (
+                    obj.__class__.__name__,
+                    {
+                        f.name: _serialize(getattr(obj, f.name))
+                        for f in fields(obj)
+                        if f.init
+                    },
+                )
             elif isinstance(obj, tuple) and hasattr(obj, "_fields"):
                 return type(obj)(*[_serialize(v) for v in obj])
             elif isinstance(obj, (list, tuple)):

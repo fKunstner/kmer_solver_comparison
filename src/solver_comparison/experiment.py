@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional, Tuple, Union
 import numpy as np
 from numpy.typing import NDArray
 
+from solver_comparison.logging import utils
 from solver_comparison.logging.datalogger import DataLogger
 from solver_comparison.logging.expfiles import exp_filepaths
 from solver_comparison.logging.progress_logger import ExperimentProgressLogger
@@ -29,10 +30,11 @@ class Experiment(Serializable):
 
     def hash(self):
         """A hash of the on ``uname`` encoded in b32 (filesystem-safe)."""
-        as_bytes = self.uname().encode("ascii")
-        as_hash = hashlib.sha256(as_bytes)
-        as_b32 = base64.b32encode(as_hash.digest()).decode("ascii")
-        return as_b32
+        return utils.slugify(self.as_str())
+        # as_bytes = self.uname().encode("ascii")
+        # as_hash = hashlib.sha256(as_bytes)
+        # as_b32 = base64.b32encode(as_hash.digest()).decode("ascii")
+        # return as_b32
 
     def uname(self):
         """A unique name that can be used to check for equivalence."""
@@ -70,6 +72,7 @@ class Experiment(Serializable):
         saved_parameters = OnlineSequenceSummary(n_to_save=20)
 
         def info_to_save(param):
+            curr_time = time.perf_counter()
             func, grad = model.logp_grad(param, nograd=False)
             return {
                 "param": param,
@@ -78,6 +81,7 @@ class Experiment(Serializable):
                 "grad_l1": np.linalg.norm(grad, ord=1),
                 "grad_l2": np.linalg.norm(grad, ord=2),
                 "grad_linf": np.linalg.norm(grad, ord=np.inf),
+                "time": curr_time - start_time,
             }
 
         curr_iter = 0
@@ -137,6 +141,7 @@ class Experiment(Serializable):
                 "grads_l1": [x["grad_l1"] for x in saved_values],
                 "grads_l2": [x["grad_l2"] for x in saved_values],
                 "grads_linf": [x["grad_linf"] for x in saved_values],
+                "times": [x["time"] for x in saved_values],
                 "iters": saved_iters,
             }
         )

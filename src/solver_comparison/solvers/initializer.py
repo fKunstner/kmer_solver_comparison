@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Literal
 
@@ -10,16 +11,16 @@ from solver_comparison.serialization import Serializable
 
 @dataclass
 class Initializer(Serializable):
-    _METHOD_TYPE = Literal["simplex_uniform", "zero"]
-    method: _METHOD_TYPE = "simplex_uniform"
-
+    @abstractmethod
     def initialize_model(self, model: Model) -> NDArray:
-        if self.method == "simplex_uniform":
-            return np.ones(model.dimension) / model.dimension
-        elif self.method == "zero":
-            return np.zeros(model.dimension)
-        else:
-            raise ValueError(
-                f"Initialization method {self.method} unknown. "
-                f"Expected one of {self._METHOD_TYPE}"
-            )
+        pass
+
+
+class InitUniform(Initializer):
+    def initialize_model(self, model: Model) -> NDArray:
+        return np.ones(model.dimension) / model.dimension
+
+
+class InitZero(Initializer):
+    def initialize_model(self, model: Model) -> NDArray:
+        return np.zeros(model.dimension)

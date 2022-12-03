@@ -8,8 +8,8 @@ from scipy.special import softmax
 from solver_comparison.problem.model import SIMPLEX, SOFTMAX, Model
 from solver_comparison.problem.problem import Problem
 from solver_comparison.solvers.expgrad import ExpGrad
-from solver_comparison.solvers.frank_wolfe import FrankWolfe
-from solver_comparison.solvers.initializer import Initializer
+from solver_comparison.solvers.frank_wolfe import AwayFrankWolfe, FrankWolfe
+from solver_comparison.solvers.initializer import Initializer, InitUniform
 from solver_comparison.solvers.lbfgs import LBFGS
 
 
@@ -79,10 +79,10 @@ class ToyModel(Model):
 def test_gradients(use_softmax):
     toy_model = ToyModel(data_uniform, use_softmax=use_softmax)
 
-    _, grad_val = toy_model.logp_grad(weights_shifted)
+    _, grad_val = toy_model.logp_grad(w_shifted)
 
     func = partial(toy_model.logp_grad, nograd=True)
-    grad_numerical = gradient_finite_differences(func, weights_shifted)
+    grad_numerical = gradient_finite_differences(func, w_shifted)
 
     assert np.allclose(grad_val, grad_numerical)
 
@@ -104,32 +104,38 @@ data_shifted = np.array(
     ]
 ).astype(float)
 
-weights_uniform = normalize([1, 1, 1])
-weights_shifted = normalize([1, 1, 3])
-weights_unbalanced = normalize([1, 100, 100])
+w_uniform = normalize([1, 1, 1])
+w_shifted = normalize([1, 1, 3])
+w_unbalanced = normalize([1, 100, 100])
 
 
 @pytest.mark.parametrize(
     "optimizer,data,param_start,expected",
     [
-        (ExpGrad(), data_uniform, weights_uniform, weights_uniform),
-        (ExpGrad(), data_uniform, weights_shifted, weights_uniform),
-        (ExpGrad(), data_uniform, weights_unbalanced, weights_uniform),
-        (ExpGrad(), data_shifted, weights_uniform, weights_shifted),
-        (ExpGrad(), data_shifted, weights_shifted, weights_shifted),
-        (ExpGrad(), data_shifted, weights_unbalanced, weights_shifted),
-        (LBFGS(), data_uniform, weights_uniform, weights_uniform),
-        (LBFGS(), data_uniform, weights_shifted, weights_uniform),
-        (LBFGS(), data_uniform, weights_unbalanced, weights_uniform),
-        (LBFGS(), data_shifted, weights_uniform, weights_shifted),
-        (LBFGS(), data_shifted, weights_shifted, weights_shifted),
-        (LBFGS(), data_shifted, weights_unbalanced, weights_shifted),
-        (FrankWolfe(), data_uniform, weights_uniform, weights_uniform),
-        (FrankWolfe(), data_uniform, weights_shifted, weights_uniform),
-        (FrankWolfe(), data_uniform, weights_unbalanced, weights_uniform),
-        (FrankWolfe(), data_shifted, weights_uniform, weights_shifted),
-        (FrankWolfe(), data_shifted, weights_shifted, weights_shifted),
-        (FrankWolfe(), data_shifted, weights_unbalanced, weights_shifted),
+        (ExpGrad(), data_uniform, w_uniform, w_uniform),
+        (ExpGrad(), data_uniform, w_shifted, w_uniform),
+        (ExpGrad(), data_uniform, w_unbalanced, w_uniform),
+        (ExpGrad(), data_shifted, w_uniform, w_shifted),
+        (ExpGrad(), data_shifted, w_shifted, w_shifted),
+        (ExpGrad(), data_shifted, w_unbalanced, w_shifted),
+        (LBFGS(), data_uniform, w_uniform, w_uniform),
+        (LBFGS(), data_uniform, w_shifted, w_uniform),
+        (LBFGS(), data_uniform, w_unbalanced, w_uniform),
+        (LBFGS(), data_shifted, w_uniform, w_shifted),
+        (LBFGS(), data_shifted, w_shifted, w_shifted),
+        (LBFGS(), data_shifted, w_unbalanced, w_shifted),
+        (FrankWolfe(ls_ss_tol=1e-10), data_uniform, w_uniform, w_uniform),
+        (FrankWolfe(ls_ss_tol=1e-10), data_uniform, w_shifted, w_uniform),
+        (FrankWolfe(ls_ss_tol=1e-10), data_uniform, w_unbalanced, w_uniform),
+        (FrankWolfe(ls_ss_tol=1e-10), data_shifted, w_uniform, w_shifted),
+        (FrankWolfe(ls_ss_tol=1e-10), data_shifted, w_shifted, w_shifted),
+        (FrankWolfe(ls_ss_tol=1e-10), data_shifted, w_unbalanced, w_shifted),
+        (AwayFrankWolfe(ls_ss_tol=1e-20), data_uniform, w_uniform, w_uniform),
+        (AwayFrankWolfe(ls_ss_tol=1e-20), data_uniform, w_shifted, w_uniform),
+        (AwayFrankWolfe(ls_ss_tol=1e-20), data_uniform, w_unbalanced, w_uniform),
+        (AwayFrankWolfe(ls_ss_tol=1e-20), data_shifted, w_uniform, w_shifted),
+        (AwayFrankWolfe(ls_ss_tol=1e-20), data_shifted, w_shifted, w_shifted),
+        (AwayFrankWolfe(ls_ss_tol=1e-20), data_shifted, w_unbalanced, w_shifted),
     ],
 )
 def test_optimizers(
@@ -159,10 +165,10 @@ K, N, L = 8, 100, 14
         ),
     ],
 )
-def test_no_error_on_simple_experiment(problem):
+def test_gradient_rewrite(problem):
     model = problem.load_model()
 
-    w0 = Initializer("simplex_uniform").initialize_model(model)
+    w0 = InitUniform().initialize_model(model)
 
     f_new, g_new = model._objective.func_and_grad(w0)
     f_old, g_old = model.kmerexpr_model.logp_grad(theta=w0)

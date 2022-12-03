@@ -3,7 +3,7 @@ import pytest
 from solver_comparison.logging.utils import runtime
 from solver_comparison.problem.model import SIMPLEX, SOFTMAX
 from solver_comparison.problem.problem import Problem
-from solver_comparison.solvers.initializer import Initializer
+from solver_comparison.solvers.initializer import Initializer, InitUniform
 
 K, N, L = 8, 20, 14
 problem_softmax = Problem(
@@ -25,7 +25,7 @@ problem_simplex = Problem(
 )
 def test_timing_cache(problem, nograd):
     model = problem.load_model()
-    param = Initializer("simplex_uniform").initialize_model(model)
+    param = InitUniform().initialize_model(model)
 
     with runtime() as first_call:
         model.logp_grad(param, nograd=nograd)
@@ -39,7 +39,7 @@ def test_timing_cache(problem, nograd):
 @pytest.mark.parametrize("problem", [problem_simplex, problem_softmax])
 def test_timing_cache_function_after_grad(problem):
     model = problem.load_model()
-    param = Initializer("simplex_uniform").initialize_model(model)
+    param = InitUniform().initialize_model(model)
 
     with runtime() as first_call:
         model.logp_grad(param, nograd=False)
