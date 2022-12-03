@@ -14,31 +14,32 @@ from solver_comparison.logging.datalogger import DataLogger
 from solver_comparison.logging.expfiles import exp_filepaths
 from solver_comparison.logging.progress_logger import ExperimentProgressLogger
 from solver_comparison.logging.sequence_summarizer import OnlineSequenceSummary
-from solver_comparison.logging.utils import runtime
+from solver_comparison.logging.utils import as_dict, runtime
 from solver_comparison.problem.model import Model
 from solver_comparison.problem.problem import Problem
-from solver_comparison.serialization import Serializable
 from solver_comparison.solvers.initializer import Initializer
 from solver_comparison.solvers.optimizer import Optimizer
 
 
 @dataclass
-class Experiment(Serializable):
+class Experiment:
     prob: Problem
     opt: Optimizer
     init: Initializer
 
+    def as_dict(self):
+        return as_dict(self)
+
     def hash(self):
         """A hash of the on ``uname`` encoded in b32 (filesystem-safe)."""
-        return utils.slugify(self.as_str())
-        # as_bytes = self.uname().encode("ascii")
-        # as_hash = hashlib.sha256(as_bytes)
-        # as_b32 = base64.b32encode(as_hash.digest()).decode("ascii")
-        # return as_b32
+        as_bytes = self.uname().encode("ascii")
+        as_hash = hashlib.sha256(as_bytes)
+        as_b32 = base64.b32encode(as_hash.digest()).decode("ascii")
+        return as_b32
 
     def uname(self):
         """A unique name that can be used to check for equivalence."""
-        return base64.b32encode(self.as_str().encode("ascii")).decode("ascii")
+        return base64.b32encode(str(self.as_dict()).encode("ascii")).decode("ascii")
 
     def has_already_run(self):
         conf_file, data_file, summary_file = exp_filepaths(self.hash())

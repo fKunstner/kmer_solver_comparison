@@ -5,13 +5,12 @@ from typing import Any, Callable, Dict, Optional
 from numpy.typing import NDArray
 
 from solver_comparison.problem.model import Model
-from solver_comparison.serialization import Serializable
 
 CallbackFunction = Callable[[NDArray, Optional[Dict[str, Any]]], None]
 
 
 @dataclass
-class Optimizer(ABC, Serializable):
+class Optimizer(ABC):
     """Base class for optimizers."""
 
     max_iter: int = 100

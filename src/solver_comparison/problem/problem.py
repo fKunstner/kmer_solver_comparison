@@ -7,12 +7,11 @@ from kmerexpr.rna_seq_reader import reads_to_y
 from kmerexpr.utils import Problem as KmerExprProblem
 from kmerexpr.utils import load_lengths, load_simulation_parameters
 
-from solver_comparison.problem.model import Model, get_model
-from solver_comparison.serialization import Serializable
+from solver_comparison.problem.model import Model
 
 
 @dataclass
-class Problem(Serializable):
+class Problem:
     """Wrapper around the datasets and model in kmerexpr.
 
     Args:

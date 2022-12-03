@@ -1,7 +1,3 @@
-from abc import abstractmethod
-from typing import Optional
-
-import numpy as np
 from kmerexpr.multinomial_model import multinomial_model
 from kmerexpr.multinomial_simplex_model import multinomial_simplex_model
 from numpy.typing import NDArray

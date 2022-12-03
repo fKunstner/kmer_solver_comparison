@@ -1,7 +1,9 @@
+import json
 import re
 import time
 import unicodedata
 from copy import deepcopy
+from dataclasses import fields, is_dataclass
 from typing import Any, Dict, Optional
 
 
@@ -60,9 +62,45 @@ def seconds_to_human_readable(seconds):
     return " ".join(parts) if len(parts) > 0 else "0s"
 
 
-def slugify(s: str):
-    """Convert to a filesystem-safe ASCII string."""
-    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii")
-    s = s.replace("[", "(").replace("]", ")")
-    s = re.sub(r"[^\w\s()-]", "", s.lower())
-    return re.sub(r"[-\s]+", "-", s).strip("-_")
+def as_dict(x):
+    """Gets a dictionary representation of a DataClass.
+
+    A re-implementation of DataClass's ``asdict`` ignoring non-init
+    fields.
+    """
+
+    def _recursive_as_dict(_obj):
+        """Gets a representation of obj.
+
+        A re-implementation of DataClass's ``asdict`` ignoring non-init
+        fields.
+        """
+        if is_dataclass(_obj):
+            return (
+                _obj.__class__.__name__,
+                {
+                    f.name: _recursive_as_dict(getattr(_obj, f.name))
+                    for f in fields(_obj)
+                    if f.init
+                },
+            )
+        elif isinstance(_obj, tuple) and hasattr(_obj, "_fields"):
+            return type(_obj)(*[_recursive_as_dict(v) for v in _obj])
+        elif isinstance(_obj, (list, tuple)):
+            return type(_obj)(_recursive_as_dict(v) for v in _obj)
+        elif isinstance(_obj, dict):
+            return type(_obj)(
+                (_recursive_as_dict(k), _recursive_as_dict(v)) for k, v in _obj.items()
+            )
+        else:
+            return _obj
+
+    return _recursive_as_dict(x)
+
+
+def str_to_dict(some_str):
+    return json.loads(some_str)
+
+
+def dict_to_str(some_dict):
+    return json.dumps(some_dict, sort_keys=True)

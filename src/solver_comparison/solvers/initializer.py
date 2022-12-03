@@ -1,16 +1,14 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
 
 from solver_comparison.problem.model import Model
-from solver_comparison.serialization import Serializable
 
 
 @dataclass
-class Initializer(Serializable):
+class Initializer:
     @abstractmethod
     def initialize_model(self, model: Model) -> NDArray:
         pass
