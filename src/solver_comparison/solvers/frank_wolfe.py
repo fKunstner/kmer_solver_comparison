@@ -1,7 +1,7 @@
 import time
 import warnings
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Any, Callable, Dict, Optional
 
 import numpy as np
 import scipy as sp
@@ -50,10 +50,7 @@ class FrankWolfe(Optimizer):
         return curr_param
 
     def run(
-        self,
-        model: Model,
-        param: NDArray,
-        progress_callback: Optional[CallbackFunction] = None,
+        self, model: Model, param: NDArray, callback: Optional[CallbackFunction] = None
     ) -> NDArray:
         def loss(theta):
             return -model.logp_grad(theta)[0]
@@ -67,10 +64,8 @@ class FrankWolfe(Optimizer):
             new_param = self.step(curr_param, loss, curr_grad)
             new_grad = grad(new_param)
 
-            if progress_callback is not None:
-                progress_callback(new_param)
-
-            print(new_param)
+            if callback is not None:
+                callback(new_param, None)
 
             if np.isnan(new_param).any():
                 warnings.warn(
