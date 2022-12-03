@@ -16,8 +16,8 @@ from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer
 class FrankWolfe(Optimizer):
     """Frank-Wolfe optimizer."""
 
-    tol: float = 10 ** -20
-    gtol: float = 10 ** -20
+    tol: float = 10**-20
+    gtol: float = 10**-20
     ls_ss_tol: float = 1e-5
 
     def linesearch(self, objective_ss):
