@@ -22,8 +22,9 @@ class FrankWolfe(Optimizer):
 
     away_step: bool = False
     pairwise_step: bool = False
-    tol: float = 10**-20
-    gtol: float = 10**-20
+    tol: float = 10 ** -20
+    gtol: float = 10 ** -20
+    linesearch_stepsize_abs_tolerance: float = 1e-12
 
     def step(self, curr_param: NDArray, loss: Callable, curr_grad: NDArray) -> NDArray:
         imin = np.argmin(curr_grad)
@@ -38,10 +39,7 @@ class FrankWolfe(Optimizer):
             loss_for_stepsize,
             bounds=(0.0, 1.0),
             method="Bounded",
-            options={
-                "disp": 3,
-                "xatol": 1e-12,
-            },
+            options={"xatol": self.linesearch_stepsize_abs_tolerance},
         )
         stepsize = result["x"]
 
