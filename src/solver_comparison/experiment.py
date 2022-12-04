@@ -70,7 +70,7 @@ class Experiment:
 
         start_time = time.perf_counter()
         progress_logger = ExperimentProgressLogger(max_iter=self.opt.max_iter)
-        saved_parameters = OnlineSequenceSummary(n_to_save=20)
+        saved_parameters = OnlineSequenceSummary(n_to_save=50)
 
         def info_to_save(param):
             curr_time = time.perf_counter()

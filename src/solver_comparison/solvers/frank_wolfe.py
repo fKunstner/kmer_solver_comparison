@@ -55,13 +55,10 @@ class FrankWolfe(Optimizer):
             if callback is not None:
                 callback(new_param, None)
 
-            import pdb
-
             if np.isnan(new_param).any():
                 warnings.warn(
                     "iterates have a NaN a iteration {iter}; returning previous iterate"
                 )
-                pdb.set_trace()
             if primal_dual_gap < self.tol:
                 print(f"Optimality gap is less than: {self.tol}, stopping.")
                 break
