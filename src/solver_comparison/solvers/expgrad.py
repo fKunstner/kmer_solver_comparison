@@ -10,7 +10,7 @@ from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer
 
 @dataclass
 class ExpGrad(Optimizer):
-    """Exponentiated Gradient Descent / Mirror Descent with a line search.
+    """Exponentiated Gradient Ascent / Mirror Ascent with a line search.
 
     Calls exp_grad_solver with the default Armijo linesearch. Does not
     use additional features (HessInv, lrs)
