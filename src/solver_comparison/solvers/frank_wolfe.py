@@ -88,7 +88,9 @@ class AwayFrankWolfe(FrankWolfe):
 
         primal_dual_gap = incr_projection
 
-        imin = np.argmin(curr_grad)
+        valid_directions = curr_grad
+        valid_directions[curr_param == 0] = np.inf
+        imin = np.argmin(valid_directions)
         away_target[imin] = 1.0
         decr_direction = curr_param - away_target
         decr_projection = curr_grad.dot(decr_direction)
@@ -107,4 +109,8 @@ class AwayFrankWolfe(FrankWolfe):
 
         stepsize = self.linesearch(rescaled_objective)
         curr_param = curr_param + stepsize * max_ss * direction
+        print(
+            " ".join([f"{x:.4e}" for x in list(curr_param)]),
+            " ".join([f"{x:.4e}" for x in list(curr_grad)]),
+        )
         return curr_param, primal_dual_gap

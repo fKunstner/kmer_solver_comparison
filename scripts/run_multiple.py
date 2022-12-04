@@ -49,11 +49,10 @@ experiments = [
 if __name__ == "__main__":
     for exp in experiments:
         print(exp.as_dict())
-        print(exp.as_str())
         if not exp.has_already_run():
             exp.run()
 
-    for exp in experiments:
-        make_individual_exp_plots(exp)
+    # for exp in experiments:
+    #     make_individual_exp_plots(exp)
 
     make_comparison_plots(experiments)
