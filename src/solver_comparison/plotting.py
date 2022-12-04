@@ -284,6 +284,9 @@ def make_comparison_plots(experiments: List[Experiment]):
 
     title = "compare-" + get_plot_base_filename(experiments[0], with_optimizer=False)
 
+    plt.rcParams["figure.figsize"] = [8.0, 8.0]
+    plt.rcParams["figure.dpi"] = 300
+
     plot_general_different_xaxes(
         theta_errors_per_optim,
         xs_dict,
