@@ -16,7 +16,6 @@ class FrankWolfe(Optimizer):
     """Frank-Wolfe optimizer."""
 
     tol: float = 10**-20
-    gtol: float = 10**-20
     ls_ss_tol: float = 1e-5
 
     def linesearch(self, objective_ss):
@@ -64,7 +63,7 @@ class FrankWolfe(Optimizer):
                 )
                 pdb.set_trace()
             if primal_dual_gap < self.tol:
-                print(f"Optimality gap is less than: {self.gtol}, stopping.")
+                print(f"Optimality gap is less than: {self.tol}, stopping.")
                 break
 
             curr_param = new_param
@@ -88,7 +87,7 @@ class AwayFrankWolfe(FrankWolfe):
 
         primal_dual_gap = incr_projection
 
-        valid_directions = curr_grad
+        valid_directions = curr_grad.copy()
         valid_directions[curr_param == 0] = np.inf
         imin = np.argmin(valid_directions)
         away_target[imin] = 1.0
@@ -108,9 +107,12 @@ class AwayFrankWolfe(FrankWolfe):
             return objective_ss(stepsize_in_0_1 * max_ss)
 
         stepsize = self.linesearch(rescaled_objective)
+
+        stepsize_is_close_to_1 = np.abs(stepsize - 1.0) < 10 * self.ls_ss_tol
+        if stepsize_is_close_to_1:
+            should_be_1 = rescaled_objective(1.0) >= rescaled_objective(stepsize)
+            if should_be_1:
+                stepsize = 1.0
+
         curr_param = curr_param + stepsize * max_ss * direction
-        print(
-            " ".join([f"{x:.4e}" for x in list(curr_param)]),
-            " ".join([f"{x:.4e}" for x in list(curr_grad)]),
-        )
         return curr_param, primal_dual_gap
