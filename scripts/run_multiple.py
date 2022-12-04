@@ -48,8 +48,10 @@ experiments = [
 
 if __name__ == "__main__":
     for exp in experiments:
-        print(exp.as_dict())
-        if not exp.has_already_run():
+        if exp.has_already_run():
+            print(exp.as_dict())
+            print("stored at ", exp.hash())
+        else:
             exp.run()
 
     # for exp in experiments:
