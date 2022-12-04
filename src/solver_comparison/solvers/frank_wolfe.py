@@ -1,7 +1,6 @@
-import time
 import warnings
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Tuple
 
 import numpy as np
 from numpy.linalg import norm
@@ -29,7 +28,9 @@ class FrankWolfe(Optimizer):
         )
         return result["x"]
 
-    def step(self, model: Model, curr_param: NDArray) -> NDArray:
+    def step(self, model: Model, curr_param: NDArray) -> Tuple[NDArray, float]:
+        """A Frank-Wolfe step on the simplex."""
+
         curr_grad = model.logp_grad(curr_param)[1]
 
         imax = np.argmax(curr_grad)
@@ -37,40 +38,36 @@ class FrankWolfe(Optimizer):
         param_target[imax] = 1.0
         direction = param_target - curr_param
 
+        primal_dual_gap = curr_grad.dot(direction)
+
         objective_ss = model.objfunc_along_direction(curr_param, direction)
         stepsize = self.linesearch(objective_ss)
         curr_param = curr_param + stepsize * direction
-        return curr_param
+        return curr_param, primal_dual_gap
 
     def run(
         self, model: Model, param: NDArray, callback: Optional[CallbackFunction] = None
     ) -> NDArray:
 
         curr_param = param
-        curr_grad = model.logp_grad(curr_param)[1]
         for t in range(self.max_iter):
-            new_param = self.step(model, curr_param)
-            new_grad = model.logp_grad(new_param)[1]
+            new_param, primal_dual_gap = self.step(model, curr_param)
 
             if callback is not None:
                 callback(new_param, None)
+
+            import pdb
 
             if np.isnan(new_param).any():
                 warnings.warn(
                     "iterates have a NaN a iteration {iter}; returning previous iterate"
                 )
-                break
-            if norm(new_param - curr_param, ord=1) <= self.tol:
-                print(
-                    f"Frank Wolfe iterates are less than: {self.tol}, apart. Stopping"
-                )
-                break
-            if norm(new_grad - curr_grad, ord=1) <= self.gtol:
-                print(f"Frank Wolfe grads are less than: {self.gtol}, apart. Stopping")
+                pdb.set_trace()
+            if primal_dual_gap < self.tol:
+                print(f"Optimality gap is less than: {self.gtol}, stopping.")
                 break
 
             curr_param = new_param
-            curr_grad = new_grad
 
         return curr_param
 
@@ -79,7 +76,7 @@ class FrankWolfe(Optimizer):
 class AwayFrankWolfe(FrankWolfe):
     """Frank-Wolfe with away steps."""
 
-    def step(self, model: Model, curr_param: NDArray) -> NDArray:
+    def step(self, model: Model, curr_param: NDArray) -> Tuple[NDArray, float]:
         curr_grad: NDArray = model.logp_grad(curr_param)[1]
         target: NDArray = np.zeros_like(curr_param)
         away_target: NDArray = np.zeros_like(curr_param)
@@ -88,6 +85,8 @@ class AwayFrankWolfe(FrankWolfe):
         target[imax] = 1.0
         incr_direction = target - curr_param
         incr_projection = curr_grad.dot(incr_direction)
+
+        primal_dual_gap = incr_projection
 
         imin = np.argmin(curr_grad)
         away_target[imin] = 1.0
@@ -108,4 +107,4 @@ class AwayFrankWolfe(FrankWolfe):
 
         stepsize = self.linesearch(rescaled_objective)
         curr_param = curr_param + stepsize * max_ss * direction
-        return curr_param
+        return curr_param, primal_dual_gap
