@@ -17,7 +17,7 @@ if problem == "small":
     K, N, L, alpha = 8, 100, 14, 0.1
     max_iter = 50
 elif problem == "medium":
-    filename = "sampled_genome_0.01.fsa"
+    filename = "sampled_genome_0.01"
     max_iter = 100
     K, N, L, alpha = 14, 500000, 50, 0.1
 elif problem == "large":
@@ -26,7 +26,7 @@ elif problem == "large":
     K, N, L, alpha = 14, 5000000, 100, 0.1
 elif problem == "huge":
     filename = "GRCh38_latest_rna.fna"
-    max_iter = 100
+    max_iter = 2000
     K, N, L, alpha = 14, 50000000, 200, 0.1
 else:
     raise ValueError(f"Problem {problem} unknown")
