@@ -4,11 +4,11 @@ from solver_comparison.experiment import Experiment
 from solver_comparison.plotting import make_individual_exp_plots
 from solver_comparison.problem.model import SIMPLEX, SOFTMAX
 from solver_comparison.problem.problem import Problem
-from solver_comparison.solvers.cover import Cover
 from solver_comparison.solvers.expgrad import ExpGrad
 from solver_comparison.solvers.frank_wolfe import AwayFrankWolfe, FrankWolfe
 from solver_comparison.solvers.initializer import Initializer, InitUniform
 from solver_comparison.solvers.lbfgs import LBFGS
+from solver_comparison.solvers.mg import MG
 
 problem = "small"
 
@@ -29,7 +29,7 @@ SimplexProblem = partial(Problem, model_type=SIMPLEX)
 
 experiment = Experiment(
     prob=SimplexProblem(filename=filename, K=K, N=N, L=L, alpha=alpha, beta=1.0),
-    opt=Cover(max_iter=max_iter),
+    opt=MG(max_iter=max_iter),
     init=InitUniform(),
 )
 

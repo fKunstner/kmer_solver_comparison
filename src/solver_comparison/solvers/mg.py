@@ -12,8 +12,8 @@ from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer
 
 
 @dataclass
-class Cover(Optimizer):
-    """Cover's algorithm."""
+class MG(Optimizer):
+    """The Multiplicative Gradient algorithm."""
 
     tol: float = 10**-20
 
