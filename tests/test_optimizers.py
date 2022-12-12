@@ -161,7 +161,7 @@ K, N, L = 8, 100, 14
             model_type=SIMPLEX, filename="test5.fsa", K=K, N=N, L=L, alpha=0.1, beta=1.0
         ),
         Problem(
-            model_type=SOFTMAX, filename="test5.fsa", K=K, N=N, L=L, alpha=0.1, beta=1.0
+            model_type=SOFTMAX, filename="test5.fsa", K=K, N=N, L=L, alpha=0.1, beta=0.0
         ),
     ],
 )
@@ -172,12 +172,16 @@ def test_gradient_rewrite(problem):
 
     f_new, g_new = model._objective.func_and_grad(w0)
     f_old, g_old = model.kmerexpr_model.logp_grad(theta=w0)
-    assert f_new == f_old
-    assert np.allclose(g_new, g_old)
+
+    tot_count = np.sum(model.kmerexpr_model.ynnz)
+
+    assert np.allclose(f_new, f_old / tot_count)
+    assert np.allclose(g_new, g_old / tot_count)
 
     w0 = normalize(w0 + np.random.randn(np.shape(w0)[0]) ** 2)
 
     f_new, g_new = model._objective.func_and_grad(w0)
     f_old, g_old = model.kmerexpr_model.logp_grad(theta=w0)
-    assert f_new == f_old
-    assert np.allclose(g_new, g_old)
+
+    assert np.allclose(f_new, f_old / tot_count)
+    assert np.allclose(g_new, g_old / tot_count)
