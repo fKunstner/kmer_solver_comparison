@@ -4,14 +4,14 @@ import numpy as np
 from kmerexpr.utils import get_errors
 from matplotlib import pyplot as plt
 
-from solver_comparison.plotting.style import markers, palette
+from solver_comparison.plotting.style import LINEWIDTH, markers, palette
 
 
 def save_and_close(dir_path, title):
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
     file_path = os.path.join(dir_path, title + ".pdf")
-    plt.savefig(file_path, bbox_inches="tight", pad_inches=0.01)
+    plt.savefig(file_path)
     print("Saved plot ", file_path)
     plt.close()
 
@@ -21,14 +21,14 @@ def plot_scatter(title, xaxis, yaxis, horizontal=False, save_path="./figures"):
     if horizontal:
         title = title + "-psi-minus-scatter"
         plt.plot([0, np.max(xaxis)], [0, 0], "--")
-        plt.ylabel(r"$ \psi^{opt} - \psi^{*}$", fontsize=25)
+        plt.ylabel(r"$ \psi^{opt} - \psi^{*}$")
     else:
         max_scal = np.max([np.max(xaxis), np.max(yaxis)])
         title = title + "-psi-scatter"
         plt.plot([0, max_scal], [0, max_scal], "--")
-        plt.ylabel(r"$ \psi^{*}$", fontsize=25)
+        plt.ylabel(r"$ \psi^{*}$")
 
-    plt.xlabel(r"$ \psi^{opt}$", fontsize=25)
+    plt.xlabel(r"$ \psi^{opt}$")
     save_and_close(save_path, title)
 
 
@@ -41,12 +41,8 @@ def plot_general(
     xaxislabel="Effective Passes",
     xticks=None,
     logplot=True,
-    fontsize=30,
     miny=10000,
 ):
-    plt.rc("text", usetex=True)
-    plt.rc("font", family="sans-serif")
-
     for algo_name, marker, color in zip(result_dict.keys(), markers, palette):
         print("plotting: ", algo_name)
         result = result_dict[algo_name]  # result is a 2-d list with different length
@@ -80,9 +76,8 @@ def plot_general(
                 val_avg,
                 marker,
                 markevery=markevery,
-                markersize=12,
                 label=algo_name,
-                lw=3,
+                lw=LINEWIDTH,
                 color=color,
             )
         else:
@@ -91,9 +86,8 @@ def plot_general(
                 val_avg,
                 marker,
                 markevery=markevery,
-                markersize=12,
                 label=algo_name,
-                lw=3,
+                lw=LINEWIDTH,
                 color=color,
             )
 
@@ -101,10 +95,10 @@ def plot_general(
         if miny > newmincand:
             miny = newmincand
     plt.ylim(bottom=miny)  # (1- (miny/np.abs(miny))*0.1)
-    plt.tick_params(labelsize=20)
-    plt.legend(fontsize=fontsize)
-    plt.xlabel(xaxislabel, fontsize=25)
-    plt.ylabel(yaxislabel, fontsize=25)
+    plt.tick_params()
+    plt.legend()
+    plt.xlabel(xaxislabel)
+    plt.ylabel(yaxislabel)
 
     save_and_close(save_path, title)
 
@@ -164,12 +158,8 @@ def plot_general_different_xaxes(
     xaxislabel,
     yaxislabel,
     logplot=True,
-    fontsize=30,
     miny=10000,
 ):
-    plt.rc("text", usetex=True)
-    plt.rc("font", family="sans-serif")
-
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
@@ -179,9 +169,8 @@ def plot_general_different_xaxes(
         xs_dict,
         xaxislabel,
         yaxislabel,
-        logplot=True,
-        fontsize=30,
-        miny=10000,
+        logplot=logplot,
+        miny=miny,
     )
 
     save_and_close(save_path, title)
@@ -195,7 +184,6 @@ def plot_on_axis(
     yaxislabel,
     logplot=True,
     miny=100000,
-    fontsize=30,
 ):
     for algo_name, marker, color in zip(result_dict.keys(), markers, palette):
         print("plotting: ", algo_name)
@@ -207,9 +195,8 @@ def plot_on_axis(
                 xs,
                 result,
                 marker,
-                markersize=12,
                 label=algo_name,
-                lw=3,
+                lw=LINEWIDTH,
                 color=color,
             )
         else:
@@ -217,9 +204,8 @@ def plot_on_axis(
                 xs,
                 result,
                 marker,
-                markersize=12,
                 label=algo_name,
-                lw=3,
+                lw=LINEWIDTH,
                 color=color,
             )
 
@@ -228,9 +214,9 @@ def plot_on_axis(
             miny = newmincand
 
     ax.set_ylim(bottom=miny)  # (1- (miny/np.abs(miny))*0.1)
-    ax.legend(fontsize=fontsize)
-    ax.set_xlabel(xaxislabel, fontsize=25)
-    ax.set_ylabel(yaxislabel, fontsize=25)
+    ax.legend()
+    ax.set_xlabel(xaxislabel)
+    ax.set_ylabel(yaxislabel)
 
 
 def plot_multiple(
@@ -240,15 +226,10 @@ def plot_multiple(
     save_path,
     xaxislabel,
     logplot=True,
-    fontsize=30,
     miny=10000,
 ):
-    plt.rc("text", usetex=False)
-    plt.rc("font", family="sans-serif")
-
     n_plots = len(multiple_result_dict)
-    scale = 12
-    fig = plt.figure(figsize=(scale * n_plots, scale))
+    fig = plt.figure()
     axes = [fig.add_subplot(1, n_plots, i) for i in range(1, n_plots + 1)]
 
     for i, (name, result_dict) in enumerate(multiple_result_dict.items()):
@@ -259,7 +240,6 @@ def plot_multiple(
             xaxislabel,
             yaxislabel=name,
             logplot=logplot,
-            fontsize=fontsize,
             miny=miny,
         )
 

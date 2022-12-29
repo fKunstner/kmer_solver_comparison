@@ -23,9 +23,12 @@ from solver_comparison.plotting.data import (
     get_shortname,
     load_dict_result,
 )
+from solver_comparison.plotting.style import base_style, figsize
 
 
 def make_individual_exp_plots(exp: Experiment):
+    plt.rcParams.update(base_style)
+
     base_title = get_plot_base_filename(exp)
     fig_folder = config.figures_dir()
 
@@ -39,6 +42,7 @@ def make_individual_exp_plots(exp: Experiment):
     lengths = load_lengths(exp.prob.filename, exp.prob.N, exp.prob.L)
     psi_opt = length_adjustment_inverse(theta_opt, lengths)
 
+    plt.rcParams.update(figsize(ncols=1))
     plot_error_vs_iterations(
         dict_results,
         theta_true,
@@ -93,6 +97,8 @@ def make_individual_exp_plots(exp: Experiment):
 
 
 def make_comparison_plots(experiments: List[Experiment]):
+    plt.rcParams.update(base_style)
+
     theta_errors_per_optim = {}
     func_per_optim = {}
     grads_l1_per_optim = {}
@@ -149,6 +155,9 @@ def make_comparison_plots(experiments: List[Experiment]):
     plt.rcParams["figure.figsize"] = [8.0, 8.0]
     plt.rcParams["figure.dpi"] = 300
 
+    plt.rcParams.update(
+        figsize(ncols=len(statistics_per_optim), height_to_width_ratio=1.0)
+    )
     plot_multiple(
         statistics_per_optim,
         xs_dict,
@@ -157,6 +166,7 @@ def make_comparison_plots(experiments: List[Experiment]):
         xaxislabel="iterations",
     )
 
+    plt.rcParams.update(figsize(ncols=1))
     plot_general_different_xaxes(
         theta_errors_per_optim,
         xs_dict,
