@@ -7,6 +7,15 @@ from matplotlib import pyplot as plt
 from solver_comparison.plotting.style import markers, palette
 
 
+def save_and_close(dir_path, title):
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+    file_path = os.path.join(dir_path, title + ".pdf")
+    plt.savefig(file_path, bbox_inches="tight", pad_inches=0.01)
+    print("Saved plot ", file_path)
+    plt.close()
+
+
 def plot_scatter(title, xaxis, yaxis, horizontal=False, save_path="./figures"):
     plt.scatter(xaxis, yaxis, s=5, alpha=0.4)  # theta_opt
     if horizontal:
@@ -20,11 +29,7 @@ def plot_scatter(title, xaxis, yaxis, horizontal=False, save_path="./figures"):
         plt.ylabel(r"$ \psi^{*}$", fontsize=25)
 
     plt.xlabel(r"$ \psi^{opt}$", fontsize=25)
-    plt.savefig(
-        os.path.join(save_path, title + ".pdf"), bbox_inches="tight", pad_inches=0.01
-    )
-    print("Saved plot ", os.path.join(save_path, title + ".pdf"))
-    plt.close()
+    save_and_close(save_path, title)
 
 
 def plot_general(
@@ -41,31 +46,6 @@ def plot_general(
 ):
     plt.rc("text", usetex=True)
     plt.rc("font", family="sans-serif")
-    palette = [
-        "#377eb8",
-        "#ff7f00",
-        "#984ea3",
-        "#4daf4a",
-        "#e41a1c",
-        "brown",
-        "green",
-        "red",
-    ]
-    markers = [
-        "^-",
-        "1-",
-        "*-",
-        "s-",
-        "+-",
-        "o-",
-        ">-",
-        "d-",
-        "2-",
-        "3-",
-        "4-",
-        "8-",
-        "<-",
-    ]
 
     for algo_name, marker, color in zip(result_dict.keys(), markers, palette):
         print("plotting: ", algo_name)
@@ -84,10 +64,7 @@ def plot_general(
             val_avg = val_avg[:len_cut]
         newlength = len(val_avg)
         val_min = np.min(result, axis=0)[:newlength]
-        val_max = np.max(result, axis=0)[:newlength]
-        # std_result = np.std(result, axis=0)[:newlength]
-        # val_min = np.add(val_avg, -std_result)
-        # val_max = np.add(val_avg, std_result)
+
         if xticks is None:
             xticks_p = np.arange(newlength)
         else:
@@ -119,7 +96,7 @@ def plot_general(
                 lw=3,
                 color=color,
             )
-        # plt.fill_between(xticks_p, val_min, val_max, alpha=0.2, color=color)
+
         newmincand = np.min(val_min)
         if miny > newmincand:
             miny = newmincand
@@ -128,14 +105,8 @@ def plot_general(
     plt.legend(fontsize=fontsize)
     plt.xlabel(xaxislabel, fontsize=25)
     plt.ylabel(yaxislabel, fontsize=25)
-    # plt.title(title, fontsize=25)
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
-    plt.savefig(
-        os.path.join(save_path, title + ".pdf"), bbox_inches="tight", pad_inches=0.01
-    )
-    print("Saved plot ", os.path.join(save_path, title + ".pdf"))
-    return plt.gcf()  # or try plt.figure(1)
+
+    save_and_close(save_path, title)
 
 
 def plot_error_vs_iterations(
@@ -190,8 +161,8 @@ def plot_general_different_xaxes(
     xs_dict,
     title,
     save_path,
-    yaxislabel,
     xaxislabel,
+    yaxislabel,
     logplot=True,
     fontsize=30,
     miny=10000,
@@ -199,49 +170,21 @@ def plot_general_different_xaxes(
     plt.rc("text", usetex=True)
     plt.rc("font", family="sans-serif")
 
-    for algo_name, marker, color in zip(result_dict.keys(), markers, palette):
-        print("plotting: ", algo_name)
-        result = result_dict[algo_name]
-        xs = xs_dict[algo_name]
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
 
-        if np.min(result) <= 0 or logplot == False:
-            plt.plot(
-                xs,
-                result,
-                marker,
-                markersize=12,
-                label=algo_name,
-                lw=3,
-                color=color,
-            )
-        else:
-            plt.semilogy(
-                xs,
-                result,
-                marker,
-                markersize=12,
-                label=algo_name,
-                lw=3,
-                color=color,
-            )
-
-        newmincand = np.min(result)
-        if miny > newmincand:
-            miny = newmincand
-
-    plt.ylim(bottom=miny)  # (1- (miny/np.abs(miny))*0.1)
-    plt.tick_params(labelsize=20)
-    plt.legend(fontsize=fontsize)
-    plt.xlabel(xaxislabel, fontsize=25)
-    plt.ylabel(yaxislabel, fontsize=25)
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
-    plt.savefig(
-        os.path.join(save_path, title + ".pdf"), bbox_inches="tight", pad_inches=0.01
+    plot_on_axis(
+        ax,
+        result_dict,
+        xs_dict,
+        xaxislabel,
+        yaxislabel,
+        logplot=True,
+        fontsize=30,
+        miny=10000,
     )
-    print("Saved plot ", os.path.join(save_path, title + ".pdf"))
-    plt.gcf()
-    plt.close()
+
+    save_and_close(save_path, title)
 
 
 def plot_on_axis(
@@ -285,7 +228,6 @@ def plot_on_axis(
             miny = newmincand
 
     ax.set_ylim(bottom=miny)  # (1- (miny/np.abs(miny))*0.1)
-    # ax.set_tick_params(labelsize=20)
     ax.legend(fontsize=fontsize)
     ax.set_xlabel(xaxislabel, fontsize=25)
     ax.set_ylabel(yaxislabel, fontsize=25)
@@ -321,11 +263,4 @@ def plot_multiple(
             miny=miny,
         )
 
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
-    plt.savefig(
-        os.path.join(save_path, title + ".pdf"), bbox_inches="tight", pad_inches=0.01
-    )
-    print("Saved plot ", os.path.join(save_path, title + ".pdf"))
-    plt.gcf()
-    plt.close()
+    save_and_close(save_path, title)
