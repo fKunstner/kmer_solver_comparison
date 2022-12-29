@@ -6,15 +6,43 @@ from typing import List
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import scipy as sp
 from kmerexpr.plotting import plot_error_vs_iterations, plot_general, plot_scatter
 from kmerexpr.simulate_reads import length_adjustment_inverse
 from kmerexpr.utils import Model_Parameters, get_errors, load_lengths
+from scipy.special import rel_entr
 
 from solver_comparison import config
 from solver_comparison.experiment import Experiment
 from solver_comparison.logging.expfiles import exp_filepaths
 from solver_comparison.problem.problem import Problem
 from solver_comparison.solvers.optimizer import Optimizer
+
+palette = [
+    "#377eb8",
+    "#ff7f00",
+    "#984ea3",
+    "#4daf4a",
+    "#e41a1c",
+    "brown",
+    "green",
+    "red",
+]
+markers = [
+    "^-",
+    "1-",
+    "*-",
+    "s-",
+    "+-",
+    "o-",
+    ">-",
+    "d-",
+    "2-",
+    "3-",
+    "4-",
+    "8-",
+    "<-",
+]
 
 
 def get_shortname(exp):
@@ -178,31 +206,6 @@ def plot_general_different_xaxes(
 ):
     plt.rc("text", usetex=True)
     plt.rc("font", family="sans-serif")
-    palette = [
-        "#377eb8",
-        "#ff7f00",
-        "#984ea3",
-        "#4daf4a",
-        "#e41a1c",
-        "brown",
-        "green",
-        "red",
-    ]
-    markers = [
-        "^-",
-        "1-",
-        "*-",
-        "s-",
-        "+-",
-        "o-",
-        ">-",
-        "d-",
-        "2-",
-        "3-",
-        "4-",
-        "8-",
-        "<-",
-    ]
 
     for algo_name, marker, color in zip(result_dict.keys(), markers, palette):
         print("plotting: ", algo_name)
@@ -249,11 +252,104 @@ def plot_general_different_xaxes(
     plt.close()
 
 
+def plot_on_axis(
+    ax,
+    result_dict,
+    xs_dict,
+    xaxislabel,
+    yaxislabel,
+    logplot=True,
+    miny=100000,
+    fontsize=30,
+):
+    for algo_name, marker, color in zip(result_dict.keys(), markers, palette):
+        print("plotting: ", algo_name)
+        result = result_dict[algo_name]
+        xs = xs_dict[algo_name]
+
+        if np.min(result) <= 0 or logplot == False:
+            ax.plot(
+                xs,
+                result,
+                marker,
+                markersize=12,
+                label=algo_name,
+                lw=3,
+                color=color,
+            )
+        else:
+            ax.semilogy(
+                xs,
+                result,
+                marker,
+                markersize=12,
+                label=algo_name,
+                lw=3,
+                color=color,
+            )
+
+        newmincand = np.min(result)
+        if miny > newmincand:
+            miny = newmincand
+
+    ax.set_ylim(bottom=miny)  # (1- (miny/np.abs(miny))*0.1)
+    # ax.set_tick_params(labelsize=20)
+    ax.legend(fontsize=fontsize)
+    ax.set_xlabel(xaxislabel, fontsize=25)
+    ax.set_ylabel(yaxislabel, fontsize=25)
+
+
+def plot_multiple(
+    multiple_result_dict,
+    xs_dict,
+    title,
+    save_path,
+    xaxislabel,
+    logplot=True,
+    fontsize=30,
+    miny=10000,
+):
+    plt.rc("text", usetex=True)
+    plt.rc("font", family="sans-serif")
+
+    n_plots = len(multiple_result_dict)
+    scale = 12
+    fig = plt.figure(figsize=(scale * n_plots, scale))
+    axes = [fig.add_subplot(1, n_plots, i) for i in range(1, n_plots + 1)]
+
+    for i, (name, result_dict) in enumerate(multiple_result_dict.items()):
+        plot_on_axis(
+            axes[i],
+            result_dict,
+            xs_dict,
+            xaxislabel,
+            yaxislabel=name,
+            logplot=logplot,
+            fontsize=fontsize,
+            miny=miny,
+        )
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    plt.savefig(
+        os.path.join(save_path, title + ".pdf"), bbox_inches="tight", pad_inches=0.01
+    )
+    print("Saved plot ", os.path.join(save_path, title + ".pdf"))
+    plt.gcf()
+    plt.close()
+
+
 def make_comparison_plots(experiments: List[Experiment]):
     theta_errors_per_optim = {}
     func_per_optim = {}
     grads_l1_per_optim = {}
     xs_dict = {}
+    statistics_per_optim = {
+        "|theta - theta*|_1": {},
+        "|theta - theta*|_2": {},
+        "kl(theta|theta*)": {},
+        "kl(theta*|theta)": {},
+    }
 
     exp0 = experiments[0]
     for exp in experiments:
@@ -275,6 +371,19 @@ def make_comparison_plots(experiments: List[Experiment]):
         dict_results = load_dict_result(exp)
         dict_simulation = exp.prob.load_simulation_parameters()
         theta_true = dict_simulation["theta_true"]
+
+        statistics_per_optim["|theta - theta*|_1"][get_shortname(exp)] = [
+            np.linalg.norm(x - theta_true, ord=1) for x in dict_results["xs"]
+        ]
+        statistics_per_optim["|theta - theta*|_2"][get_shortname(exp)] = [
+            np.linalg.norm(x - theta_true, ord=2) for x in dict_results["xs"]
+        ]
+        statistics_per_optim["kl(theta|theta*)"][get_shortname(exp)] = [
+            np.sum(rel_entr(x, theta_true)) for x in dict_results["xs"]
+        ]
+        statistics_per_optim["kl(theta*|theta)"][get_shortname(exp)] = [
+            np.sum(rel_entr(x, theta_true)) for x in dict_results["xs"]
+        ]
         theta_errors_per_optim[get_shortname(exp)] = get_errors(
             dict_results["xs"], theta_true
         )
@@ -286,6 +395,14 @@ def make_comparison_plots(experiments: List[Experiment]):
 
     plt.rcParams["figure.figsize"] = [8.0, 8.0]
     plt.rcParams["figure.dpi"] = 300
+
+    plot_multiple(
+        statistics_per_optim,
+        xs_dict,
+        title=title + "-multiple_metrics",
+        save_path=config.figures_dir(),
+        xaxislabel="iterations",
+    )
 
     plot_general_different_xaxes(
         theta_errors_per_optim,
