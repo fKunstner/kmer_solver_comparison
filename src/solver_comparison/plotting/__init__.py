@@ -9,14 +9,13 @@ from scipy.special import rel_entr
 from solver_comparison import config
 from solver_comparison.experiment import Experiment
 from solver_comparison.plotting.base_plots import (
-    plot_error_vs_iterations,
-    plot_general,
-    plot_general_different_xaxes,
-    plot_multiple,
-    plot_on_axis,
-    plot_optimization_error,
-    plot_scatter,
-    plot_stat,
+    _make_figure_general_different_xaxes,
+    make_axis_general,
+    make_figure_error_vs_iterations,
+    make_figure_multiple_plots,
+    make_figure_optimization_error,
+    make_figure_scatter,
+    make_figure_stat,
 )
 from solver_comparison.plotting.data import (
     get_plot_base_filename,
@@ -43,7 +42,7 @@ def make_individual_exp_plots(exp: Experiment):
     psi_opt = length_adjustment_inverse(theta_opt, lengths)
 
     plt.rcParams.update(figsize(ncols=1))
-    plot_error_vs_iterations(
+    make_figure_error_vs_iterations(
         dict_results,
         theta_true,
         base_title + "-theta-errors",
@@ -51,7 +50,7 @@ def make_individual_exp_plots(exp: Experiment):
         save_path=fig_folder,
     )
 
-    plot_optimization_error(
+    make_figure_optimization_error(
         dict_results,
         base_title + "-optim-errors",
         opt_name=exp.opt.__class__.__name__,
@@ -59,7 +58,7 @@ def make_individual_exp_plots(exp: Experiment):
     )
 
     for stat in ["grads_l0", "grads_l1", "grads_l2", "grads_linf"]:
-        plot_stat(
+        make_figure_stat(
             stat,
             dict_results,
             base_title,
@@ -67,27 +66,27 @@ def make_individual_exp_plots(exp: Experiment):
             save_path=fig_folder,
         )
 
-    plot_scatter(
+    make_figure_scatter(
         base_title + "-theta",
         theta_opt,
         theta_sampled,
         horizontal=False,
         save_path=fig_folder,
     )
-    plot_scatter(
+    make_figure_scatter(
         base_title + "-theta",
         theta_opt,
         theta_opt - theta_sampled,
         horizontal=True,
         save_path=fig_folder,
     )
-    plot_scatter(
+    make_figure_scatter(
         base_title,
         psi_opt,
         psi_true,
         save_path=fig_folder,
     )
-    plot_scatter(
+    make_figure_scatter(
         base_title,
         psi_opt,
         psi_opt - psi_true,
@@ -158,7 +157,7 @@ def make_comparison_plots(experiments: List[Experiment]):
     plt.rcParams.update(
         figsize(ncols=len(statistics_per_optim), height_to_width_ratio=1.0)
     )
-    plot_multiple(
+    make_figure_multiple_plots(
         statistics_per_optim,
         xs_dict,
         title=title + "-multiple_metrics",
@@ -167,7 +166,7 @@ def make_comparison_plots(experiments: List[Experiment]):
     )
 
     plt.rcParams.update(figsize(ncols=1))
-    plot_general_different_xaxes(
+    _make_figure_general_different_xaxes(
         theta_errors_per_optim,
         xs_dict,
         title=title + "-theta",
@@ -175,7 +174,7 @@ def make_comparison_plots(experiments: List[Experiment]):
         yaxislabel=r"$\|\theta -\theta^* \|$",
         xaxislabel="iterations",
     )
-    plot_general_different_xaxes(
+    _make_figure_general_different_xaxes(
         grads_l1_per_optim,
         xs_dict,
         title=title + "-gradl1",
@@ -184,7 +183,7 @@ def make_comparison_plots(experiments: List[Experiment]):
         xaxislabel="iterations",
         miny=np.min([np.min(vals) for key, vals in grads_l1_per_optim.items()]),
     )
-    plot_general_different_xaxes(
+    _make_figure_general_different_xaxes(
         func_per_optim,
         xs_dict,
         title=title + "-optim-error",
