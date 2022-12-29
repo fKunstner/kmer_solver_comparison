@@ -4,22 +4,24 @@ import numpy as np
 from kmerexpr.utils import get_errors
 from matplotlib import pyplot as plt
 
-from solver_comparison.plotting.style import LINEWIDTH, markers, palette
+from solver_comparison.plotting.style import LINEWIDTH, figsize, markers, palette
 
 
-def ax_title_xy(ax, title: str, x: str, y: str):
-    ax.set_title(title)
+def ax_xylabels(ax, x: str, y: str):
     ax.set_xlabel(x)
     ax.set_ylabel(y)
 
 
-def save_and_close(dir_path, title):
+def save_and_close(dir_path, title, fig=None):
+    if fig is None:
+        fig = plt.gcf()
+
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
     file_path = os.path.join(dir_path, title + ".pdf")
-    plt.savefig(file_path)
+    fig.savefig(file_path)
     print("Saved plot ", file_path)
-    plt.close()
+    plt.close(fig)
 
 
 ##
@@ -58,6 +60,15 @@ def make_axis_general(
 
 ##
 # Making figures -- private functions / main logic
+
+
+def make_figure_and_axes(rows, cols):
+    fig = plt.figure(figsize=figsize(nrows=rows, ncols=cols)["figure.figsize"])
+    axes = [
+        [fig.add_subplot(rows, cols, row * cols + col + 1) for col in range(cols)]
+        for row in range(rows)
+    ]
+    return fig, axes
 
 
 def _make_figure_general_different_xaxes(

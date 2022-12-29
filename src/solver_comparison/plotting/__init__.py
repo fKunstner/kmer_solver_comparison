@@ -1,22 +1,24 @@
 from typing import List
 
-import matplotlib.pyplot as plt
 import numpy as np
 from kmerexpr.simulate_reads import length_adjustment_inverse
 from kmerexpr.utils import get_errors, load_lengths
+from matplotlib import pyplot as plt
 from scipy.special import rel_entr
 
 from solver_comparison import config
 from solver_comparison.experiment import Experiment
-from solver_comparison.plotting import _make_figure_general_different_xaxes
 from solver_comparison.plotting.base_plots import (
     _make_figure_general_different_xaxes,
+    ax_xylabels,
     make_axis_general,
+    make_figure_and_axes,
     make_figure_error_vs_iterations,
     make_figure_multiple_plots,
     make_figure_optimization_error,
     make_figure_scatter,
     make_figure_stat,
+    save_and_close,
 )
 from solver_comparison.plotting.data import (
     get_plot_base_filename,
@@ -51,17 +53,19 @@ def make_individual_exp_plots(exp: Experiment):
         save_path=fig_folder,
     )
 
-    title = base_title + "-optim-errors"
-    ys_dict = {exp.opt.__class__.__name__: -np.array(results_dict["loss_records"])}
-    xs_dict = {exp.opt.__class__.__name__: results_dict["iteration_counts"]}
-    _make_figure_general_different_xaxes(
-        ys_dict=ys_dict,
-        xs_dict=xs_dict,
-        title=title,
-        save_path=fig_folder,
-        ylabel=r"$f(\theta)$",
-        xlabel="iterations",
+    optname = exp.opt.__class__.__name__
+
+    fig, axes = make_figure_and_axes(rows=1, cols=1)
+    ax = axes[0][0]
+    make_axis_general(
+        ax,
+        xs_dict={optname: results_dict["iteration_counts"]},
+        ys_dict={optname: -np.array(results_dict["loss_records"])},
+        logplot=True,
     )
+    ax.legend()
+    ax_xylabels(ax, "iterations", r"$f(\theta)$")
+    save_and_close(fig_folder, title=base_title + "-optim-errors", fig=fig)
 
     for stat in ["grads_l0", "grads_l1", "grads_l2", "grads_linf"]:
         make_figure_stat(
