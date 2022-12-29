@@ -8,6 +8,7 @@ def convert_summary_to_dict_results(summary):
     dict_results = {
         "x": summary["prob_end"],
         "xs": summary["probs"],
+        "times": summary["times"],
         # Todo: "Loss" is inaccurate, it's an objective and higher is better
         # Requires a fix in kmerexpr
         "loss_records": summary["objs"],
@@ -47,3 +48,21 @@ def get_plot_base_filename(exp: Experiment, with_optimizer: bool = True):
         title += f"-init-{initializer.__class__.__name__}-{exp.opt.__class__.__name__}"
 
     return title
+
+
+def check_all_exps_are_on_same_problem(experiments):
+    exp0 = experiments[0]
+    for exp in experiments:
+        if not all(
+            [
+                exp0.prob.filename == exp.prob.filename,
+                exp0.prob.L == exp.prob.L,
+                exp0.prob.N == exp.prob.N,
+                exp0.prob.K == exp.prob.K,
+                exp0.prob.alpha == exp.prob.alpha,
+            ]
+        ):
+            raise ValueError(
+                f"Trying to compare experiments on different problems. "
+                f"Got {exp0.prob} != {exp.prob}"
+            )

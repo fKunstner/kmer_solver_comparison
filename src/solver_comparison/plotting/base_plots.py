@@ -4,7 +4,42 @@ import numpy as np
 from kmerexpr.utils import get_errors
 from matplotlib import pyplot as plt
 
-from solver_comparison.plotting.style import LINEWIDTH, figsize, markers, palette
+from solver_comparison.plotting.style import (
+    _GOLDEN_RATIO,
+    LINEWIDTH,
+    MARKERS,
+    figsize,
+    palette,
+)
+
+
+def subsample(xs, n, log=False):
+    sub_idx = subsample_idx(len(xs), n=n)
+    return [xs[i] for i in sub_idx]
+
+
+def subsample_idx(length, n, log=False):
+    """Returns a n-subset of [0,length-1]"""
+    if log:
+        log_grid = np.logspace(start=0, stop=np.log10(length - 1), num=n - 1)
+        idx = [0] + list(log_grid.astype(int))
+    else:
+        lin_grid = np.linspace(start=0, stop=length - 1, num=n)
+        idx = list(lin_grid.astype(int))
+    idx = sorted(list(set(idx)))
+    return idx
+
+
+def equalize_xy_axes(*axes):
+    """Equalize the x and y limits to be the same.
+
+    Ensures that ``ax.get_xlim() == ax.get_ylim()`` for each ``ax``
+    """
+    for ax in axes:
+        axlimits = [*ax.get_xlim(), *ax.get_ylim()]
+        minlim, maxlim = np.min(axlimits), np.max(axlimits)
+        ax.set_xlim([minlim, maxlim])
+        ax.set_ylim([minlim, maxlim])
 
 
 def ax_xylabels(ax, x: str, y: str):
@@ -33,10 +68,10 @@ def make_axis_general(
     ys_dict,
     xs_dict,
     logplot=True,
+    markers=MARKERS,
     miny=100000,
 ):
     for algo_name, marker, color in zip(ys_dict.keys(), markers, palette):
-        print("plotting: ", algo_name)
         result = ys_dict[algo_name]
         xs = xs_dict[algo_name]
 
@@ -62,13 +97,19 @@ def make_axis_general(
 # Making figures -- private functions / main logic
 
 
-def make_figure_and_axes(rows, cols):
-    fig = plt.figure(figsize=figsize(nrows=rows, ncols=cols)["figure.figsize"])
-    axes = [
-        [fig.add_subplot(rows, cols, row * cols + col + 1) for col in range(cols)]
-        for row in range(rows)
-    ]
-    return fig, axes
+def make_figure_and_axes(
+    rows, cols, height_to_width_ratio=_GOLDEN_RATIO, sharex=False, sharey=False
+):
+    return plt.subplots(
+        nrows=rows,
+        ncols=cols,
+        sharex=sharex,
+        sharey=sharey,
+        figsize=figsize(
+            nrows=rows, ncols=cols, height_to_width_ratio=height_to_width_ratio
+        ),
+        squeeze=False,
+    )
 
 
 def _make_figure_general_different_xaxes(

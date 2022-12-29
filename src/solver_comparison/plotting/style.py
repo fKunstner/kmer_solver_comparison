@@ -11,7 +11,7 @@ palette = [
     "green",
     "red",
 ]
-markers = [
+MARKERS = [
     "^-",
     "1-",
     "*-",
@@ -45,13 +45,21 @@ base_fontfamily = {
     "font.family": "sans-serif",
 }
 base_other = {
+    "lines.markersize": 4,
     "figure.dpi": 150,
+}
+base_layout = {
+    "figure.constrained_layout.use": True,
+    "figure.autolayout": False,
+    "savefig.bbox": "tight",
+    "savefig.pad_inches": _PAD_INCHES,
 }
 base_style = {
     **base_fontfamily,
     **base_fontstyle,
     **base_tex,
     **base_other,
+    **base_layout,
 }
 
 
@@ -60,10 +68,7 @@ def figsize(
     rel_width=1.0,
     nrows=1,
     ncols=1,
-    constrained_layout=False,
-    tight_layout=True,
     height_to_width_ratio=_GOLDEN_RATIO,
-    pad_inches=_PAD_INCHES,
 ):
     """Neurips figure size defaults."""
     base_width_in = 5.5
@@ -72,14 +77,7 @@ def figsize(
     subplot_height_in = height_to_width_ratio * subplot_width_in
     height_in = subplot_height_in * nrows
     figsize = width_in, height_in
-
-    return {
-        "figure.figsize": figsize,
-        "figure.constrained_layout.use": constrained_layout,
-        "figure.autolayout": tight_layout,
-        "savefig.bbox": "tight",
-        "savefig.pad_inches": pad_inches,
-    }
+    return figsize
 
 
-LINEWIDTH = 2
+LINEWIDTH = 1

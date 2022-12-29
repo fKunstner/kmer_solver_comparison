@@ -2,7 +2,12 @@ import argparse
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
-from solver_comparison.plotting import make_comparison_plots, make_individual_exp_plots
+from solver_comparison.plotting import (
+    make_comparison_plots,
+    make_individual_exp_plots,
+    make_scatter_comparison_plots,
+    make_test_error_comparison,
+)
 
 experiments = []
 
@@ -61,7 +66,5 @@ if __name__ == "__main__":
             exp.run()
         print("stored at ", exp.hash())
 
-    for exp in experiments:
-        make_individual_exp_plots(exp)
-
-    make_comparison_plots(experiments)
+    make_scatter_comparison_plots(experiments)
+    make_test_error_comparison(experiments)
