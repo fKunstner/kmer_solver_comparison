@@ -45,7 +45,7 @@ def parse_cli():
         nargs="?",
         type=Path,
         default=None,
-        help="The plotting file to update on change",
+        help="The configuration file containing a variable `experiments`",
     )
 
     return parser.parse_args()
@@ -57,10 +57,9 @@ if __name__ == "__main__":
 
     for exp in experiments:
         print(exp.as_dict())
-        if exp.has_already_run():
-            print("stored at ", exp.hash())
-        else:
+        if not exp.has_already_run():
             exp.run()
+        print("stored at ", exp.hash())
 
     for exp in experiments:
         make_individual_exp_plots(exp)
