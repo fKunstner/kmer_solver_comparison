@@ -6,7 +6,7 @@ from pathlib import Path
 
 from kmerexpr import sample_genome_data
 
-from solver_comparison.kmerexpr import kmerexpr_data_path
+from solver_comparison.kmerexpr_data import kmerexpr_data_path
 
 test_name = "test5.fsa"
 test_url = "https://raw.githubusercontent.com/bob-carpenter/kmers/be5d806b928253cbc94d58e59fa2378d79c97d00/data/test5.fsa"

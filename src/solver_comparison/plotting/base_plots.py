@@ -86,19 +86,18 @@ def make_axis_general(
         if logplot and not (np.min(result) <= 0):
             ax.set_yscale("log")
 
-        newmincand = np.min(result)
-        if miny > newmincand:
-            miny = newmincand
-
-    ax.set_ylim(bottom=miny)  # (1- (miny/np.abs(miny))*0.1)
-
 
 ##
 # Making figures -- private functions / main logic
 
 
 def make_figure_and_axes(
-    rows, cols, height_to_width_ratio=_GOLDEN_RATIO, sharex=False, sharey=False
+    rows,
+    cols,
+    rel_width=1.0,
+    height_to_width_ratio=_GOLDEN_RATIO,
+    sharex=False,
+    sharey=False,
 ):
     return plt.subplots(
         nrows=rows,
@@ -106,7 +105,10 @@ def make_figure_and_axes(
         sharex=sharex,
         sharey=sharey,
         figsize=figsize(
-            nrows=rows, ncols=cols, height_to_width_ratio=height_to_width_ratio
+            nrows=rows,
+            ncols=cols,
+            rel_width=rel_width,
+            height_to_width_ratio=height_to_width_ratio,
         ),
         squeeze=False,
     )

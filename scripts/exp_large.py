@@ -9,9 +9,9 @@ from solver_comparison.solvers.initializer import InitUniform
 from solver_comparison.solvers.lbfgs import LBFGS
 from solver_comparison.solvers.mg import MG
 
-filename = "sampled_genome_0.01.fsa"
-K, N, L, alpha = 14, 500000, 50, 0.1
-max_iter = 200
+filename = "sampled_genome_0.1.fsa"
+K, N, L, alpha = 14, 5000000, 100, 0.1
+max_iter = 500
 
 SoftmaxProblem = partial(Problem, model_type=SOFTMAX)
 SimplexProblem = partial(Problem, model_type=SIMPLEX)

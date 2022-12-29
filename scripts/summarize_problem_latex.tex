@@ -1,0 +1,39 @@
+\documentclass{article}
+
+\usepackage[left=1.0in,right=1.0in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\graphicspath{{C:/Users/kunstner/kmer_solver_comparison/figures/}}
+
+\newcommand{\showallplots}[1]{%
+\section{\nolinkurl{#1}}
+\begin{figure}[h]
+\centering
+\includegraphics{#1-optim-vs-iter.pdf}
+\includegraphics{#1-optim-vs-time.pdf}
+\caption{Optimization performance}
+\end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics{#1-test-error-vs-iter.pdf}
+\includegraphics{#1-test-error-vs-time.pdf}
+\caption{Test performance}
+\end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics{#1-isoform.pdf}
+\includegraphics{#1-isoform-difference.pdf}
+\includegraphics{#1-lengthadjusted.pdf}
+\includegraphics{#1-lengthadjusted-difference.pdf}
+\caption{Final test performance}
+\end{figure}
+}
+
+\begin{document}
+
+
+\showallplots{sampled_genome_0.01.fsa-Softmax-N-500000-L-50-K-14-a-0.1}
+% \includegraphics{sampled_genome_0.01.fsa-Softmax-N-500000-L-50-K-14-a-0.1-lengthadjusted-difference.pdf}
+
+\end{document}
