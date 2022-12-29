@@ -28,16 +28,14 @@ def save_and_close(dir_path, title):
 
 def make_axis_general(
     ax,
-    result_dict,
+    ys_dict,
     xs_dict,
-    xaxislabel,
-    yaxislabel,
     logplot=True,
     miny=100000,
 ):
-    for algo_name, marker, color in zip(result_dict.keys(), markers, palette):
+    for algo_name, marker, color in zip(ys_dict.keys(), markers, palette):
         print("plotting: ", algo_name)
-        result = result_dict[algo_name]
+        result = ys_dict[algo_name]
         xs = xs_dict[algo_name]
 
         ax.plot(
@@ -56,9 +54,6 @@ def make_axis_general(
             miny = newmincand
 
     ax.set_ylim(bottom=miny)  # (1- (miny/np.abs(miny))*0.1)
-    ax.legend()
-    ax.set_xlabel(xaxislabel)
-    ax.set_ylabel(yaxislabel)
 
 
 ##
@@ -66,12 +61,12 @@ def make_axis_general(
 
 
 def _make_figure_general_different_xaxes(
-    result_dict,
+    ys_dict,
     xs_dict,
     title,
     save_path,
-    xaxislabel,
-    yaxislabel,
+    xlabel,
+    ylabel,
     logplot=True,
     miny=10000,
 ):
@@ -80,77 +75,88 @@ def _make_figure_general_different_xaxes(
 
     make_axis_general(
         ax,
-        result_dict,
+        ys_dict,
         xs_dict,
-        xaxislabel,
-        yaxislabel,
         logplot=logplot,
         miny=miny,
     )
+    ax.legend()
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
 
     save_and_close(save_path, title)
+
+
+def _make_axis_scatter(ax, xs, ys, horizontal):
+    ax.scatter(xs, ys, s=5, alpha=0.4)  # theta_opt
+    if horizontal:
+        ax.plot([0, np.max(xs)], [0, 0], "--")
+    else:
+        max_scal = np.max([np.max(xs), np.max(ys)])
+        ax.plot([0, max_scal], [0, max_scal], "--")
 
 
 ##
 # Making figures -- public api
 
 
-def make_figure_scatter(title, xaxis, yaxis, horizontal=False, save_path="./figures"):
-    plt.scatter(xaxis, yaxis, s=5, alpha=0.4)  # theta_opt
+def make_figure_scatter(title, xs, ys, horizontal=False, save_path="./figures"):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    _make_axis_scatter(ax, xs, ys, horizontal)
+
     if horizontal:
         title = title + "-psi-minus-scatter"
-        plt.plot([0, np.max(xaxis)], [0, 0], "--")
-        plt.ylabel(r"$ \psi^{opt} - \psi^{*}$")
+        ax.set_ylabel(r"$ \psi^{opt} - \psi^{*}$")
     else:
-        max_scal = np.max([np.max(xaxis), np.max(yaxis)])
         title = title + "-psi-scatter"
-        plt.plot([0, max_scal], [0, max_scal], "--")
-        plt.ylabel(r"$ \psi^{*}$")
-
+        ax.set_ylabel(r"$ \psi^{*}$")
     plt.xlabel(r"$ \psi^{opt}$")
+
     save_and_close(save_path, title)
 
 
 def make_figure_error_vs_iterations(
-    dict_results, theta_true, title, model_type, save_path="./figures"
+    results_dict, theta_true, title, model_type, save_path="./figures"
 ):
-    dict_plot = {model_type: get_errors(dict_results["xs"], theta_true)}
-    dict_xs = {model_type: dict_results["iteration_counts"]}
+    dict_plot = {model_type: get_errors(results_dict["xs"], theta_true)}
+    dict_xs = {model_type: results_dict["iteration_counts"]}
     _make_figure_general_different_xaxes(
-        result_dict=dict_plot,
+        ys_dict=dict_plot,
         xs_dict=dict_xs,
         title=title,
         save_path=save_path,
-        yaxislabel=r"$\|\theta -\theta^{*} \|$",
-        xaxislabel="iterations",
+        ylabel=r"$\|\theta -\theta^{*} \|$",
+        xlabel="iterations",
     )
 
 
-def make_figure_stat(stat, dict_results, title, opt_name, save_path="./figures"):
-    dict_plot = {opt_name: dict_results[stat]}
-    dict_xs = {opt_name: dict_results["iteration_counts"]}
+def make_figure_stat(stat, results_dict, title, opt_name, save_path="./figures"):
+    dict_plot = {opt_name: results_dict[stat]}
+    dict_xs = {opt_name: results_dict["iteration_counts"]}
     _make_figure_general_different_xaxes(
-        result_dict=dict_plot,
+        ys_dict=dict_plot,
         xs_dict=dict_xs,
         title=title + stat,
         save_path=save_path,
-        yaxislabel=stat,
-        xaxislabel="iterations",
+        ylabel=stat,
+        xlabel="iterations",
     )
 
 
 def make_figure_optimization_error(
-    dict_results, title, opt_name, save_path="./figures"
+    results_dict, title, opt_name, save_path="./figures"
 ):
-    dict_plot = {opt_name: -np.array(dict_results["loss_records"])}
-    dict_xs = {opt_name: dict_results["iteration_counts"]}
+    ys_dict = {opt_name: -np.array(results_dict["loss_records"])}
+    xs_dict = {opt_name: results_dict["iteration_counts"]}
     _make_figure_general_different_xaxes(
-        result_dict=dict_plot,
-        xs_dict=dict_xs,
+        ys_dict=ys_dict,
+        xs_dict=xs_dict,
         title=title,
         save_path=save_path,
-        yaxislabel=r"$f(\theta)$",
-        xaxislabel="iterations",
+        ylabel=r"$f(\theta)$",
+        xlabel="iterations",
     )
 
 
@@ -171,9 +177,8 @@ def make_figure_multiple_plots(
             axes[i],
             result_dict,
             xs_dict,
-            xaxislabel,
-            yaxislabel=name,
             logplot=logplot,
         )
-
+        axes[i].set_ylabel(name)
+        axes[i].set_xlabel(xaxislabel)
     save_and_close(save_path, title)

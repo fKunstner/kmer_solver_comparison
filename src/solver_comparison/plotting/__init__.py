@@ -8,6 +8,7 @@ from scipy.special import rel_entr
 
 from solver_comparison import config
 from solver_comparison.experiment import Experiment
+from solver_comparison.plotting import _make_figure_general_different_xaxes
 from solver_comparison.plotting.base_plots import (
     _make_figure_general_different_xaxes,
     make_axis_general,
@@ -31,36 +32,41 @@ def make_individual_exp_plots(exp: Experiment):
     base_title = get_plot_base_filename(exp)
     fig_folder = config.figures_dir()
 
-    dict_results = load_dict_result(exp)
-    dict_simulation = exp.prob.load_simulation_parameters()
+    results_dict = load_dict_result(exp)
+    simulation_dict = exp.prob.load_simulation_parameters()
 
-    theta_true = dict_simulation["theta_true"]
-    theta_sampled = dict_simulation["theta_sampled"]
-    psi_true = dict_simulation["psi"]
-    theta_opt = dict_results["x"]
+    theta_true = simulation_dict["theta_true"]
+    theta_sampled = simulation_dict["theta_sampled"]
+    psi_true = simulation_dict["psi"]
+    theta_opt = results_dict["x"]
     lengths = load_lengths(exp.prob.filename, exp.prob.N, exp.prob.L)
     psi_opt = length_adjustment_inverse(theta_opt, lengths)
 
     plt.rcParams.update(figsize(ncols=1))
     make_figure_error_vs_iterations(
-        dict_results,
+        results_dict,
         theta_true,
         base_title + "-theta-errors",
         model_type=exp.prob.model_type,
         save_path=fig_folder,
     )
 
-    make_figure_optimization_error(
-        dict_results,
-        base_title + "-optim-errors",
-        opt_name=exp.opt.__class__.__name__,
+    title = base_title + "-optim-errors"
+    ys_dict = {exp.opt.__class__.__name__: -np.array(results_dict["loss_records"])}
+    xs_dict = {exp.opt.__class__.__name__: results_dict["iteration_counts"]}
+    _make_figure_general_different_xaxes(
+        ys_dict=ys_dict,
+        xs_dict=xs_dict,
+        title=title,
         save_path=fig_folder,
+        ylabel=r"$f(\theta)$",
+        xlabel="iterations",
     )
 
     for stat in ["grads_l0", "grads_l1", "grads_l2", "grads_linf"]:
         make_figure_stat(
             stat,
-            dict_results,
+            results_dict,
             base_title,
             opt_name=exp.prob.model_type,
             save_path=fig_folder,
@@ -126,28 +132,28 @@ def make_comparison_plots(experiments: List[Experiment]):
             )
 
     for exp in experiments:
-        dict_results = load_dict_result(exp)
-        dict_simulation = exp.prob.load_simulation_parameters()
-        theta_true = dict_simulation["theta_true"]
+        results_dict = load_dict_result(exp)
+        simulation_dict = exp.prob.load_simulation_parameters()
+        theta_true = simulation_dict["theta_true"]
 
         statistics_per_optim["|theta - theta*|_1"][get_shortname(exp)] = [
-            np.linalg.norm(x - theta_true, ord=1) for x in dict_results["xs"]
+            np.linalg.norm(x - theta_true, ord=1) for x in results_dict["xs"]
         ]
         statistics_per_optim["|theta - theta*|_2"][get_shortname(exp)] = [
-            np.linalg.norm(x - theta_true, ord=2) for x in dict_results["xs"]
+            np.linalg.norm(x - theta_true, ord=2) for x in results_dict["xs"]
         ]
         statistics_per_optim["kl(theta|theta*)"][get_shortname(exp)] = [
-            np.sum(rel_entr(x, theta_true)) for x in dict_results["xs"]
+            np.sum(rel_entr(x, theta_true)) for x in results_dict["xs"]
         ]
         statistics_per_optim["kl(theta*|theta)"][get_shortname(exp)] = [
-            np.sum(rel_entr(x, theta_true)) for x in dict_results["xs"]
+            np.sum(rel_entr(x, theta_true)) for x in results_dict["xs"]
         ]
         theta_errors_per_optim[get_shortname(exp)] = get_errors(
-            dict_results["xs"], theta_true
+            results_dict["xs"], theta_true
         )
-        func_per_optim[get_shortname(exp)] = -np.array(dict_results["loss_records"])
-        grads_l1_per_optim[get_shortname(exp)] = dict_results["grads_l1"]
-        xs_dict[get_shortname(exp)] = dict_results["iteration_counts"]
+        func_per_optim[get_shortname(exp)] = -np.array(results_dict["loss_records"])
+        grads_l1_per_optim[get_shortname(exp)] = results_dict["grads_l1"]
+        xs_dict[get_shortname(exp)] = results_dict["iteration_counts"]
 
     title = "compare-" + get_plot_base_filename(experiments[0], with_optimizer=False)
 
@@ -171,16 +177,16 @@ def make_comparison_plots(experiments: List[Experiment]):
         xs_dict,
         title=title + "-theta",
         save_path=config.figures_dir(),
-        yaxislabel=r"$\|\theta -\theta^* \|$",
-        xaxislabel="iterations",
+        ylabel=r"$\|\theta -\theta^* \|$",
+        xlabel="iterations",
     )
     _make_figure_general_different_xaxes(
         grads_l1_per_optim,
         xs_dict,
         title=title + "-gradl1",
         save_path=config.figures_dir(),
-        yaxislabel=r"$\|\nabla f(\theta)\|_1$",
-        xaxislabel="iterations",
+        ylabel=r"$\|\nabla f(\theta)\|_1$",
+        xlabel="iterations",
         miny=np.min([np.min(vals) for key, vals in grads_l1_per_optim.items()]),
     )
     _make_figure_general_different_xaxes(
@@ -188,7 +194,7 @@ def make_comparison_plots(experiments: List[Experiment]):
         xs_dict,
         title=title + "-optim-error",
         save_path=config.figures_dir(),
-        yaxislabel=r"$f(\theta)$",
-        xaxislabel="iterations",
+        ylabel=r"$f(\theta)$",
+        xlabel="iterations",
         miny=np.min([np.min(vals) for key, vals in func_per_optim.items()]),
     )
