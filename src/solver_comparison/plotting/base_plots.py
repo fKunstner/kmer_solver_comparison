@@ -69,7 +69,6 @@ def make_axis_general(
     xs_dict,
     logplot=True,
     markers=MARKERS,
-    miny=100000,
 ):
     for algo_name, marker, color in zip(ys_dict.keys(), markers, palette):
         result = ys_dict[algo_name]
@@ -122,7 +121,6 @@ def _make_figure_general_different_xaxes(
     xlabel,
     ylabel,
     logplot=True,
-    miny=10000,
 ):
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -132,7 +130,6 @@ def _make_figure_general_different_xaxes(
         ys_dict,
         xs_dict,
         logplot=logplot,
-        miny=miny,
     )
     ax.legend()
     ax.set_xlabel(xlabel)
