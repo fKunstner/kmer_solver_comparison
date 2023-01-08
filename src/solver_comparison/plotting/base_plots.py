@@ -1,9 +1,17 @@
 import os
+from typing import Callable, List
 
 import numpy as np
+from kmerexpr.simulate_reads import length_adjustment_inverse
 from kmerexpr.utils import get_errors
 from matplotlib import pyplot as plt
 
+from solver_comparison.experiment import Experiment
+from solver_comparison.plotting.data import (
+    LOSS_LABELS,
+    load_dict_result,
+    load_problem_cached,
+)
 from solver_comparison.plotting.style import (
     _GOLDEN_RATIO,
     LINEWIDTH,
@@ -11,11 +19,6 @@ from solver_comparison.plotting.style import (
     figsize,
     palette,
 )
-
-
-def subsample(xs, n, log=False):
-    sub_idx = subsample_idx(len(xs), n=n)
-    return [xs[i] for i in sub_idx]
 
 
 def subsample_idx(length, n, log=False):
@@ -28,6 +31,11 @@ def subsample_idx(length, n, log=False):
         idx = list(lin_grid.astype(int))
     idx = sorted(list(set(idx)))
     return idx
+
+
+def subsample(xs, n, log=False):
+    sub_idx = subsample_idx(len(xs), n=n)
+    return [xs[i] for i in sub_idx]
 
 
 def equalize_xy_axes(*axes):
@@ -60,34 +68,7 @@ def save_and_close(dir_path, title, fig=None):
 
 
 ##
-# Making axes
-
-
-def make_axis_general(
-    ax,
-    ys_dict,
-    xs_dict,
-    logplot=True,
-    markers=MARKERS,
-):
-    for algo_name, marker, color in zip(ys_dict.keys(), markers, palette):
-        result = ys_dict[algo_name]
-        xs = xs_dict[algo_name]
-
-        ax.plot(
-            xs,
-            result,
-            marker,
-            label=algo_name,
-            lw=LINEWIDTH,
-            color=color,
-        )
-        if logplot and not (np.min(result) <= 0):
-            ax.set_yscale("log")
-
-
-##
-# Making figures -- private functions / main logic
+#
 
 
 def make_figure_and_axes(
@@ -113,32 +94,30 @@ def make_figure_and_axes(
     )
 
 
-def _make_figure_general_different_xaxes(
+def plot_multiple(
+    ax,
     ys_dict,
     xs_dict,
-    title,
-    save_path,
-    xlabel,
-    ylabel,
+    markers=MARKERS,
     logplot=True,
 ):
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
+    for algo_name, marker, color in zip(ys_dict.keys(), markers, palette):
+        result = ys_dict[algo_name]
+        xs = xs_dict[algo_name]
 
-    make_axis_general(
-        ax,
-        ys_dict,
-        xs_dict,
-        logplot=logplot,
-    )
-    ax.legend()
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
+        ax.plot(
+            xs,
+            result,
+            marker,
+            label=algo_name,
+            lw=LINEWIDTH,
+            color=color,
+        )
+        if logplot and not (np.min(result) <= 0):
+            ax.set_yscale("log")
 
-    save_and_close(save_path, title)
 
-
-def _make_axis_scatter(ax, xs, ys, horizontal):
+def probability_scatter(ax, xs, ys, horizontal):
     ax.scatter(xs, ys, s=5, alpha=0.4)  # theta_opt
     if horizontal:
         ax.plot([0, np.max(xs)], [0, 0], "--")
@@ -148,88 +127,128 @@ def _make_axis_scatter(ax, xs, ys, horizontal):
 
 
 ##
-# Making figures -- public api
+#
 
 
-def make_figure_scatter(title, xs, ys, horizontal=False, save_path="./figures"):
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
+def plot_on_ax_isoform_composition(
+    ax, exp: Experiment, length_adjusted: bool = True, horizontal: bool = False
+):
+    if not length_adjusted:
+        name = "Isoform Composition"
+        varname = "psi"
+    else:
+        name = "Length-adjusted"
+        varname = "theta"
+    if horizontal:
+        xlabel = rf"$\{varname}^*$"
+        ylabel = rf"$\{varname}^* - \hat\{varname}$"
+    else:
+        xlabel = rf"$\hat\{varname}$"
+        ylabel = rf"$\{varname}^*$"
 
-    _make_axis_scatter(ax, xs, ys, horizontal)
+    simulation_dict, lengths = load_problem_cached(exp.prob)
+    results_dict = load_dict_result(exp)
+    theta_opt = results_dict["x"]
+    psi_opt = length_adjustment_inverse(theta_opt, lengths)
+    psi_true = simulation_dict["psi"]
+    theta_true = simulation_dict["theta_true"]
+
+    if length_adjusted:
+        true = psi_true
+        est = psi_opt
+    else:
+        true = theta_true
+        est = theta_opt
 
     if horizontal:
-        title = title + "-psi-minus-scatter"
-        ax.set_ylabel(r"$ \psi^{opt} - \psi^{*}$")
+        x = true
+        y = true - est
     else:
-        title = title + "-psi-scatter"
-        ax.set_ylabel(r"$ \psi^{*}$")
-    plt.xlabel(r"$ \psi^{opt}$")
+        x = est
+        y = true
 
-    save_and_close(save_path, title)
+    probability_scatter(ax, x, y, horizontal=horizontal)
+
+    if not horizontal:
+        equalize_xy_axes(ax)
+
+    ax.set_title(exp.opt.__class__.__name__)
+    ax.set_xlabel(xlabel)
+
+    ax.set_ylabel(f"{name}\n{ylabel}")
 
 
-def make_figure_error_vs_iterations(
-    results_dict, theta_true, title, model_type, save_path="./figures"
+def plot_on_axis_test_error(
+    ax, exps: List[Experiment], loss_func: Callable, use_time=False
 ):
-    dict_plot = {model_type: get_errors(results_dict["xs"], theta_true)}
-    dict_xs = {model_type: results_dict["iteration_counts"]}
-    _make_figure_general_different_xaxes(
-        ys_dict=dict_plot,
-        xs_dict=dict_xs,
-        title=title,
-        save_path=save_path,
-        ylabel=r"$\|\theta -\theta^{*} \|$",
-        xlabel="iterations",
-    )
+    xs_dict = {}
+    ys_dict = {}
 
+    simulation_dict, lengths = load_problem_cached(exps[0].prob)
 
-def make_figure_stat(stat, results_dict, title, opt_name, save_path="./figures"):
-    dict_plot = {opt_name: results_dict[stat]}
-    dict_xs = {opt_name: results_dict["iteration_counts"]}
-    _make_figure_general_different_xaxes(
-        ys_dict=dict_plot,
-        xs_dict=dict_xs,
-        title=title + stat,
-        save_path=save_path,
-        ylabel=stat,
-        xlabel="iterations",
-    )
+    for exp in exps:
+        results_dict = load_dict_result(exp)
+        learned_isoform_compositions = [
+            length_adjustment_inverse(x, lengths) for x in results_dict["xs"]
+        ]
+        true_isoform_composition = simulation_dict["psi"]
+        opt_name = exp.opt.__class__.__name__
 
+        if use_time:
+            xs = results_dict["times"]
+        else:
+            xs = results_dict["iteration_counts"]
 
-def make_figure_optimization_error(
-    results_dict, title, opt_name, save_path="./figures"
-):
-    ys_dict = {opt_name: -np.array(results_dict["loss_records"])}
-    xs_dict = {opt_name: results_dict["iteration_counts"]}
-    _make_figure_general_different_xaxes(
-        ys_dict=ys_dict,
+        ys = loss_func(learned_isoform_compositions, true_isoform_composition)
+
+        xs_dict[opt_name] = subsample(xs, n=50)
+        ys_dict[opt_name] = subsample(ys, n=50)
+
+    plot_multiple(
+        ax,
         xs_dict=xs_dict,
-        title=title,
-        save_path=save_path,
-        ylabel=r"$f(\theta)$",
-        xlabel="iterations",
+        ys_dict=ys_dict,
+        markers=[""] * len(exps),
+        logplot=True,
     )
 
+    ax.set_title(LOSS_LABELS[loss_func])
 
-def make_figure_multiple_plots(
-    multiple_result_dict,
-    xs_dict,
-    title,
-    save_path,
-    xaxislabel,
-    logplot=True,
-):
-    n_plots = len(multiple_result_dict)
-    fig = plt.figure()
-    axes = [fig.add_subplot(1, n_plots, i) for i in range(1, n_plots + 1)]
+    if use_time:
+        ax.set_xscale("log")
+        ax.set_xlabel("Time")
+    else:
+        ax.set_xlabel("Iteration")
 
-    for i, (name, result_dict) in enumerate(multiple_result_dict.items()):
-        make_axis_general(
-            axes[i],
-            result_dict,
-            xs_dict,
-            logplot=logplot,
-        )
-        axes[i].set_ylabel(name)
-        axes[i].set_xlabel(xaxislabel)
-    save_and_close(save_path, title)
+    ax.legend()
+
+
+def plot_on_axis_optimization(ax, exps: List[Experiment], use_time: bool = False):
+    xs_dict = {}
+    ys_dict = {}
+    for exp in exps:
+        results_dict = load_dict_result(exp)
+        ys = -np.array(results_dict["loss_records"])
+
+        if use_time:
+            xs = results_dict["times"]
+        else:
+            xs = results_dict["iteration_counts"]
+
+        opt_name = exp.opt.__class__.__name__
+        xs_dict[opt_name] = xs
+        ys_dict[opt_name] = ys
+
+    plot_multiple(
+        ax,
+        xs_dict=xs_dict,
+        ys_dict=ys_dict,
+        # markers=[""] * len(exps),
+        logplot=True,
+    )
+
+    ax.set_ylabel("Loss")
+    ax.set_xlabel("Time" if use_time else "Iteration")
+    if use_time:
+        ax.set_xscale("log")
+    ax.legend()

@@ -53,3 +53,24 @@ class Problem:
 
     def load_simulation_parameters(self):
         return load_simulation_parameters(self.kmer_problem)
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, Problem)
+            and self.filename == other.filename
+            and self.N == other.N
+            and self.K == other.K
+            and self.L == other.L
+            and self.alpha == other.alpha
+        )
+
+    def __hash__(self):
+        return sum(
+            [
+                self.filename.__hash__(),
+                self.K.__hash__(),
+                self.N.__hash__(),
+                self.L.__hash__(),
+                self.alpha.__hash__(),
+            ]
+        )
