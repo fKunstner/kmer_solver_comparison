@@ -8,6 +8,7 @@ from solver_comparison.solvers.frank_wolfe import FrankWolfe
 from solver_comparison.solvers.initializer import InitUniform
 from solver_comparison.solvers.lbfgs import LBFGS
 from solver_comparison.solvers.mg import MG
+from solver_comparison.solvers.relsmooth import RelSmooth, RelSmoothLS
 
 
 def all_optims_for(filename, K, N, L, alpha, max_iter):
@@ -34,6 +35,8 @@ def all_optims_for(filename, K, N, L, alpha, max_iter):
             ExpGrad(max_iter=max_iter),
             FrankWolfe(max_iter=max_iter),
             MG(max_iter=max_iter),
+            RelSmooth(max_iter=max_iter),
+            RelSmoothLS(max_iter=max_iter),
         ]
     ]
     return list(experiments)

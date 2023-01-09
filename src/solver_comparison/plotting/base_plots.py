@@ -135,10 +135,10 @@ def plot_on_ax_isoform_composition(
 ):
     if not length_adjusted:
         name = "Isoform Composition"
-        varname = "psi"
+        varname = "theta"
     else:
         name = "Length-adjusted"
-        varname = "theta"
+        varname = "psi"
     if horizontal:
         xlabel = rf"$\{varname}^*$"
         ylabel = rf"$\{varname}^* - \hat\{varname}$"
@@ -219,6 +219,11 @@ def plot_on_axis_test_error(
         ax.set_xlabel("Time")
     else:
         ax.set_xlabel("Iteration")
+
+    everything_is_inf = np.all([np.isinf(y) for line in ax.lines for y in line._y])
+    if everything_is_inf:
+        ax.text(0, 0, "Everything is INF")
+        ax.set_xscale("linear")
 
     ax.legend()
 

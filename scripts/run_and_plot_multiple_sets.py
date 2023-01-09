@@ -38,5 +38,5 @@ if __name__ == "__main__":
                 exp.run()
             print("stored at ", exp.hash())
 
-    for experiments_set in tqdm(experiments_sets):
+    for experiments_set in tqdm(experiments_sets[23:]):
         make_all_plots(experiments_set)
