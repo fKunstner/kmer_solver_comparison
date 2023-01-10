@@ -35,8 +35,8 @@ def all_optims_for(filename, K, N, L, alpha, max_iter):
             ExpGrad(max_iter=max_iter),
             FrankWolfe(max_iter=max_iter),
             MG(max_iter=max_iter),
-            RelSmooth(max_iter=max_iter),
-            RelSmoothLS(max_iter=max_iter),
+            # RelSmooth(max_iter=max_iter),
+            # RelSmoothLS(max_iter=max_iter),
         ]
     ]
     return list(experiments)
