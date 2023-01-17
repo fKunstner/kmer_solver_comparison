@@ -15,7 +15,7 @@ from solver_comparison.solvers.optimizer import CallbackFunction, Optimizer
 class FrankWolfe(Optimizer):
     """Frank-Wolfe optimizer."""
 
-    tol: float = 10**-20
+    tol: float = 10**-6
     ls_ss_tol: float = 1e-5
 
     def linesearch(self, objective_ss):
@@ -59,6 +59,7 @@ class FrankWolfe(Optimizer):
                 warnings.warn(
                     "iterates have a NaN a iteration {iter}; returning previous iterate"
                 )
+
             if primal_dual_gap < self.tol:
                 print(f"Optimality gap is less than: {self.tol}, stopping.")
                 break

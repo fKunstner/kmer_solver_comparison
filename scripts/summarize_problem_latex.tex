@@ -1,0 +1,166 @@
+\documentclass{article}
+
+\usepackage[left=1.0in,right=1.0in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{placeins}
+
+\graphicspath{{C:/Users/kunstner/kmer_solver_comparison/figures/}}
+
+\newcommand{\makefilename}[5]{
+	% #1 - filename
+	% #2 - N
+	% #3 - K
+	% #4 - L
+	% #5 - alpha
+	#1_N#2_L#4_K#3_alpha#5
+}
+
+\newcommand{\isoform}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_ALL_isoform.pdf}}
+\newcommand{\isoformla}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_ALL_isoform-la.pdf}}
+\newcommand{\isoformdiff}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_ALL_isoform-diff.pdf}}
+\newcommand{\isoformlddiff}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_ALL_isoform-ladiff.pdf}}
+\newcommand{\testtime}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_ALL_test-vs-time.pdf}}
+\newcommand{\testiter}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_ALL_test-vs-iter.pdf}}
+\newcommand{\testtimeMSE}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_test-vs-time_nrmse.pdf}}
+\newcommand{\testiterMSE}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_test-vs-iter_nrmse.pdf}}
+\newcommand{\testtimeABS}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_test-vs-time_avg_l1.pdf}}
+\newcommand{\testiterABS}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_test-vs-iter_avg_l1.pdf}}
+\newcommand{\traintime}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_ALL_optim-vs-time.pdf}}
+\newcommand{\trainiter}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_ALL_optim-vs-iter.pdf}}
+\newcommand{\traintimeMSE}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_optim-vs-time_nrmse.pdf}}
+\newcommand{\trainiterMSE}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_optim-vs-iter_nrmse.pdf}}
+\newcommand{\traintimeABS}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_optim-vs-time_avg_l1.pdf}}
+\newcommand{\trainiterABS}[5]{\includegraphics{#1_N#2_L#4_K#3_a#5_optim-vs-iter_avg_l1.pdf}}
+
+
+\newcommand{\testMultipleN}[4]{
+	%
+	N=100\\
+	\testtimeMSE{#1}{100}{#2}{#3}{#4}
+	\testtimeABS{#1}{100}{#2}{#3}{#4}
+
+	N=1000\\
+	\testtimeMSE{#1}{1000}{#2}{#3}{#4}
+	\testtimeABS{#1}{1000}{#2}{#3}{#4}
+
+	N=10000\\
+	\testtimeMSE{#1}{10000}{#2}{#3}{#4}
+	\testtimeABS{#1}{10000}{#2}{#3}{#4}
+}
+
+\newcommand{\trainMultipleN}[4]{
+	N=100\\
+	\trainiter{#1}{100}{#2}{#3}{#4}
+	\traintime{#1}{100}{#2}{#3}{#4}
+
+	N=1000\\
+	\trainiter{#1}{1000}{#2}{#3}{#4}
+	\traintime{#1}{1000}{#2}{#3}{#4}
+
+	N=10000\\
+	\trainiter{#1}{10000}{#2}{#3}{#4}
+	\traintime{#1}{10000}{#2}{#3}{#4}
+}
+
+\newcommand{\mfig}[1]{%
+	\begin{figure}[h]
+	\centering
+	#1
+	\end{figure}
+	\FloatBarrier
+	\clearpage
+}
+
+\begin{document}
+
+
+
+\section{Meh (a=1.0)}
+
+\subsection{Optim}
+\mfig{%
+\trainMultipleN{sampled_genome_0.01.fsa}{14}{50}{1.0}
+\caption{\url{sampled_genome_0.01.fsa} K=14, L=50, alpha=1.0}
+}
+
+\subsection{Test}
+\mfig{%
+\testMultipleN{sampled_genome_0.01.fsa}{14}{50}{1.0}
+\caption{\url{sampled_genome_0.01.fsa} K=14, L=50, alpha=1.0}
+}
+
+\subsection{Scatters}
+\mfig{%
+\isoformla{sampled_genome_0.01.fsa}{100}{14}{50}{1.0}
+\isoformla{sampled_genome_0.01.fsa}{1000}{14}{50}{1.0}
+\isoformla{sampled_genome_0.01.fsa}{10000}{14}{50}{1.0}
+}
+
+
+\section{Sparse (a=0.1)}
+
+\subsection{Optim}
+\mfig{%
+\trainMultipleN{sampled_genome_0.01.fsa}{14}{50}{0.1}
+\caption{\url{sampled_genome_0.01.fsa} K=14, L=50, alpha=0.1}
+}
+
+\subsection{Test}
+\mfig{%
+\testMultipleN{sampled_genome_0.01.fsa}{14}{50}{0.1}
+\caption{\url{sampled_genome_0.01.fsa} K=14, L=50, alpha=0.1}
+}
+
+\subsection{Scatters}
+\mfig{%
+\isoformla{sampled_genome_0.01.fsa}{100}{14}{50}{0.1}
+\isoformla{sampled_genome_0.01.fsa}{1000}{14}{50}{0.1}
+\isoformla{sampled_genome_0.01.fsa}{10000}{14}{50}{0.1}
+}
+
+
+
+
+\section{Very Sparse (a=0.01)}
+\subsection{Optim}
+\mfig{%
+\trainMultipleN{sampled_genome_0.01.fsa}{14}{50}{0.01}
+\caption{\url{sampled_genome_0.01.fsa} K=14, L=50, alpha=0.01}
+}
+
+\subsection{Test}
+\mfig{%
+\testMultipleN{sampled_genome_0.01.fsa}{14}{50}{0.01}
+\caption{\url{sampled_genome_0.01.fsa} K=14, L=50, alpha=0.01}
+}
+
+\subsection{Scatters}
+\mfig{%
+\isoformla{sampled_genome_0.01.fsa}{100}{14}{50}{0.01}
+\isoformla{sampled_genome_0.01.fsa}{1000}{14}{50}{0.01}
+\isoformla{sampled_genome_0.01.fsa}{10000}{14}{50}{0.01}
+}
+
+
+\section{Xtra Sparse (a=0.001)}
+\subsection{Optim}
+\mfig{%
+\trainMultipleN{sampled_genome_0.01.fsa}{14}{50}{0.001}
+\caption{\url{sampled_genome_0.01.fsa} K=14, L=50, alpha=0.001}
+}
+
+\subsection{Test}
+\mfig{%
+\testMultipleN{sampled_genome_0.01.fsa}{14}{50}{0.001}
+\caption{\url{sampled_genome_0.01.fsa} K=14, L=50, alpha=0.001}
+}
+
+\subsection{Scatters}
+\mfig{%
+\isoformla{sampled_genome_0.01.fsa}{100}{14}{50}{0.001}
+\isoformla{sampled_genome_0.01.fsa}{1000}{14}{50}{0.001}
+\isoformla{sampled_genome_0.01.fsa}{10000}{14}{50}{0.001}
+}
+
+\end{document}

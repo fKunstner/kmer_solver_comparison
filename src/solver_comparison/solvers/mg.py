@@ -24,9 +24,10 @@ class MG(Optimizer):
         curr_param = param
         for t in range(self.max_iter):
 
-            curr_grad = model.logp_grad(curr_param)[1]
+            curr_obj, curr_grad = model.logp_grad(curr_param)
             new_param = curr_param * curr_grad
             new_param = new_param / np.sum(new_param)
+            new_obj, new_grad = model.logp_grad(new_param)
 
             if callback is not None:
                 callback(new_param, None)
@@ -35,6 +36,10 @@ class MG(Optimizer):
                 warnings.warn(
                     "iterates have a NaN a iteration {iter}; returning previous iterate"
                 )
+
+            if np.allclose(curr_param, new_param) and np.allclose(curr_obj, new_obj):
+                print(f"Params and objective have stopped changing, stopping.")
+                break
 
             curr_param = new_param
 

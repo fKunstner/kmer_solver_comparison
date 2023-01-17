@@ -1,7 +1,10 @@
 from functools import partial
 
 from solver_comparison.experiment import Experiment
-from solver_comparison.plotting import make_individual_exp_plots
+from solver_comparison.plotting import (
+    make_scatter_comparison_plots,
+    make_test_error_comparison_plots,
+)
 from solver_comparison.problem.model import SIMPLEX, SOFTMAX
 from solver_comparison.problem.problem import Problem
 from solver_comparison.solvers.expgrad import ExpGrad
@@ -33,8 +36,10 @@ experiment = Experiment(
     init=InitUniform(),
 )
 
+
 if __name__ == "__main__":
 
     experiment.run()
 
-    make_individual_exp_plots(experiment)
+    make_scatter_comparison_plots([experiment])
+    make_test_error_comparison_plots([experiment])
