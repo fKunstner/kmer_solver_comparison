@@ -12,14 +12,15 @@ class Objective:
 class MultinomialSimplexObjective(Objective):
     def __init__(self, kmer_model: multinomial_simplex_model):
         self._model = kmer_model
+        self.qnnz = self._model.ynnz / np.sum(self._model.ynnz)
         if self._model.beta != 1.0:
             raise ValueError("Priors (using beta != 1.0) not yet implemented")
 
     def _func(self, psi_probabilities: NDArray):
-        return self._model.ynnz.dot(np.log(psi_probabilities))
+        return self.qnnz.dot(np.log(psi_probabilities))
 
     def _grad(self, psi_probabilities: NDArray):
-        weights = self._model.ynnz / psi_probabilities
+        weights = self.qnnz / psi_probabilities
         return weights @ self._model.xnnz
 
     def _psi_probabilities(self, param) -> NDArray:
@@ -48,15 +49,16 @@ class MultinomialSimplexObjective(Objective):
 class MultinomialObjective(Objective):
     def __init__(self, kmer_model: multinomial_model):
         self._model = kmer_model
+        self.qnnz = self._model.ynnz / np.sum(self._model.ynnz)
 
     def _func(self, param: NDArray, psi_probabilities: NDArray):
-        log_likelihood = self._model.ynnz.dot(np.log(psi_probabilities))
+        log_likelihood = self.qnnz.dot(np.log(psi_probabilities))
         log_prior = -self._model.beta * param.dot(param)
         return log_likelihood + log_prior
 
     def _grad(self, param: NDArray, probs: NDArray, psi_probabilities: NDArray):
-        weights = self._model.ynnz / psi_probabilities
-        g_log_likelihood = self._model.xnnz.T @ weights * probs - self._model.N * probs
+        weights = self.qnnz / psi_probabilities
+        g_log_likelihood = self._model.xnnz.T @ weights * probs - probs
         g_prior = -2 * self._model.beta * param
         return g_log_likelihood + g_prior
 

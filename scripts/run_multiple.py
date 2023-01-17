@@ -4,11 +4,11 @@ from solver_comparison.experiment import Experiment
 from solver_comparison.plotting import make_comparison_plots, make_individual_exp_plots
 from solver_comparison.problem.model import SIMPLEX, SOFTMAX
 from solver_comparison.problem.problem import Problem
-from solver_comparison.solvers.cover import Cover
 from solver_comparison.solvers.expgrad import ExpGrad
 from solver_comparison.solvers.frank_wolfe import AwayFrankWolfe, FrankWolfe
 from solver_comparison.solvers.initializer import Initializer, InitUniform
 from solver_comparison.solvers.lbfgs import LBFGS
+from solver_comparison.solvers.mg import MG
 
 problem = "huge"
 
@@ -51,7 +51,7 @@ experiments = [
         ExpGrad(max_iter=max_iter),
         # FrankWolfe(max_iter=max_iter),
         # AwayFrankWolfe(max_iter=max_iter),
-        Cover(max_iter=max_iter),
+        MG(max_iter=max_iter),
     ]
 ]
 
