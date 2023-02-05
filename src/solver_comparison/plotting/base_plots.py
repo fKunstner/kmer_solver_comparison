@@ -64,9 +64,9 @@ def save_and_close(dir_path, subdir, title, fig=None):
 
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
-    file_path = os.path.join(dir_path, title + ".pdf")
-    fig.savefig(file_path)
-    print("Saved plot ", file_path)
+    fig.savefig(os.path.join(dir_path, title + ".pdf"))
+    fig.savefig(os.path.join(dir_path, title + ".png"), dpi=600)
+    print("Saved plot ", os.path.join(dir_path, title))
     plt.close(fig)
 
 

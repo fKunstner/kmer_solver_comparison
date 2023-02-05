@@ -54,7 +54,7 @@ def make_scatter_comparison_plots(exps: List[Experiment]):
 
     def _make_and_save(len_adj, diff):
         fig = __make_scatter_comparison_plots(len_adj=len_adj, diff=diff)
-        title = f"{opts}_{FNAME_ISOFORM(len_adj=diff, diff=diff)}"
+        title = f"{opts}_{FNAME_ISOFORM(len_adj=len_adj, diff=diff)}"
         save_and_close(config.figures_dir(), subdir=subdir, title=title, fig=fig)
 
     _make_and_save(len_adj=False, diff=False)
