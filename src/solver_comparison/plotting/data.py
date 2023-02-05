@@ -1,5 +1,6 @@
 import json
 from functools import lru_cache
+from typing import List
 
 import numpy as np
 from kmerexpr.utils import load_lengths
@@ -36,6 +37,26 @@ def load_dict_result(exp: Experiment):
 
 def get_shortname(exp):
     return exp.opt.__class__.__name__
+
+
+def get_plot_dirname(exp: Experiment):
+    return (
+        f"{exp.prob.filename}"
+        f"_N{exp.prob.N}"
+        f"_L{exp.prob.L}"
+        f"_K{exp.prob.K}"
+        f"_a{exp.prob.alpha}"
+    )
+
+
+def get_opt_full_name(exp: Experiment):
+    problem, optimizer, initializer = exp.prob, exp.opt, exp.init
+    return (
+        f"{exp.opt.__class__.__name__}["
+        f"model{problem.model_type}"
+        + f"_init{initializer.__class__.__name__}"
+        + f"_maxiter{exp.opt.max_iter}]"
+    )
 
 
 def get_plot_base_filename(exp: Experiment, with_optimizer: bool = True):
@@ -100,11 +121,20 @@ def rkl(psis, psi_true):
     return [entropy(psi_true, psi) for psi in psis]
 
 
+def jsd(psis, psi_true):
+    avg_psis = [0.5 * psi + 0.5 * psi_true for psi in psis]
+    return [
+        0.5 * (entropy(psi_avg, psi) + entropy(psi_avg, psi_true))
+        for psi, psi_avg in zip(psis, avg_psis)
+    ]
+
+
 LOSS_LABELS = {
     nrmse: "RMSE",
     avg_l1: "Avg. L1",
     kl: r"$KL(\hat\phi | \phi^*)$",
     rkl: r"$KL(\phi^* | \hat\phi)$",
+    jsd: r"JSD",
 }
 
 
@@ -114,10 +144,15 @@ FNAME_OPTIM_VS_ITER = "optim-vs-iter"
 FNAME_OPTIM_VS_TIME = "optim-vs-time"
 
 
-def FNAME_ISOFORM(length_adjusted: bool = False, horizontal: bool = False):
+def FNAME_ISOFORM(len_adj: bool = False, diff: bool = False):
     name = "isoform"
-    if length_adjusted:
-        name += "-la"
-    if horizontal:
-        name += "diff"
+    if len_adj:
+        name += "-length-adj"
+    if diff:
+        name += "-diff"
     return name
+
+
+def get_opts_str(exps: List[Experiment]):
+    opts = sorted(list(set([exp.opt.__class__.__name__ for exp in exps])))
+    return "[" + "+".join(opts) + "]"

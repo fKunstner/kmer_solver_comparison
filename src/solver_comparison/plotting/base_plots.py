@@ -55,9 +55,12 @@ def ax_xylabels(ax, x: str, y: str):
     ax.set_ylabel(y)
 
 
-def save_and_close(dir_path, title, fig=None):
+def save_and_close(dir_path, subdir, title, fig=None):
     if fig is None:
         fig = plt.gcf()
+
+    if subdir is not None:
+        dir_path = os.path.join(dir_path, subdir)
 
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)

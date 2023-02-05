@@ -25,53 +25,54 @@ from solver_comparison.plotting.data import (
     LOSS_LABELS,
     avg_l1,
     check_all_exps_are_on_same_problem,
+    get_opt_full_name,
+    get_opts_str,
     get_plot_base_filename,
+    get_plot_dirname,
     get_shortname,
-    kl,
+    jsd,
     load_dict_result,
     load_problem_cached,
     nrmse,
-    rkl,
 )
 from solver_comparison.plotting.style import _GOLDEN_RATIO, base_style, figsize
 
 
 def make_scatter_comparison_plots(exps: List[Experiment]):
-    def __make_scatter_comparison_plots(length_adjusted=True, horizontal=False):
+    def __make_scatter_comparison_plots(len_adj=True, diff=False):
         fig, axes = make_figure_and_axes(
             rows=1, cols=len(exps), height_to_width_ratio=1.2, sharex=True, sharey=True
         )
         for i, exp in enumerate(exps):
-            plot_on_ax_isoform_composition(axes[0][i], exp, length_adjusted, horizontal)
+            plot_on_ax_isoform_composition(axes[0][i], exp, len_adj, diff)
         return fig
 
     check_all_exps_are_on_same_problem(exps)
     plt.rcParams.update(base_style)
-    base_title = get_plot_base_filename(exps[0], with_optimizer=False)
+    subdir = get_plot_dirname(exps[0])
+    opts = get_opts_str(exps)
 
-    fig = __make_scatter_comparison_plots(length_adjusted=False, horizontal=False)
-    title = f"{base_title}_ALL_{FNAME_ISOFORM(length_adjusted=False, horizontal=False)}"
-    save_and_close(config.figures_dir(), title=title, fig=fig)
+    def _make_and_save(len_adj, diff):
+        fig = __make_scatter_comparison_plots(len_adj=len_adj, diff=diff)
+        title = f"{opts}_{FNAME_ISOFORM(len_adj=diff, diff=diff)}"
+        save_and_close(config.figures_dir(), subdir=subdir, title=title, fig=fig)
 
-    fig = __make_scatter_comparison_plots(length_adjusted=False, horizontal=True)
-    title = f"{base_title}_ALL_{FNAME_ISOFORM(length_adjusted=False, horizontal=True)}"
-    save_and_close(config.figures_dir(), title=title, fig=fig)
-
-    fig = __make_scatter_comparison_plots(length_adjusted=True, horizontal=False)
-    title = f"{base_title}_ALL_{FNAME_ISOFORM(length_adjusted=True, horizontal=False)}"
-    save_and_close(config.figures_dir(), title=title, fig=fig)
-
-    fig = __make_scatter_comparison_plots(length_adjusted=True, horizontal=True)
-    title = f"{base_title}_ALL_{FNAME_ISOFORM(length_adjusted=True, horizontal=True)}"
-    save_and_close(config.figures_dir(), title=title, fig=fig)
+    _make_and_save(len_adj=False, diff=False)
+    _make_and_save(len_adj=False, diff=True)
+    _make_and_save(len_adj=True, diff=False)
+    _make_and_save(len_adj=True, diff=True)
 
 
 def make_test_error_comparison_plots(exps: List[Experiment]):
     def _make_test_error_comparison(use_time=False):
+        lossfunctions = [nrmse, jsd]
         fig, axes = make_figure_and_axes(
-            rows=1, cols=len(exps), height_to_width_ratio=1.2, sharex=True, sharey=False
+            rows=1,
+            cols=len(lossfunctions),
+            height_to_width_ratio=1.2,
+            sharex=True,
+            sharey=False,
         )
-        lossfunctions = [nrmse, avg_l1, kl, rkl]
         for i, lossfunc in enumerate(lossfunctions):
             ax = axes[0][i]
             plot_on_axis_test_error(ax, exps, lossfunc, use_time=use_time)
@@ -82,15 +83,16 @@ def make_test_error_comparison_plots(exps: List[Experiment]):
 
     check_all_exps_are_on_same_problem(exps)
     plt.rcParams.update(base_style)
-    base_title = get_plot_base_filename(exps[0], with_optimizer=False)
+    subdir = get_plot_dirname(exps[0])
+    opts = get_opts_str(exps)
 
-    fig = _make_test_error_comparison(use_time=False)
-    title = f"{base_title}_ALL_{FNAME_TEST_VS_ITER}"
-    save_and_close(config.figures_dir(), title=title, fig=fig)
+    def _make_and_save(use_time):
+        fig = _make_test_error_comparison(use_time=use_time)
+        title = f"{opts}_{FNAME_TEST_VS_TIME if use_time else FNAME_TEST_VS_ITER}"
+        save_and_close(config.figures_dir(), subdir=subdir, title=title, fig=fig)
 
-    fig = _make_test_error_comparison(use_time=True)
-    title = f"{base_title}_ALL_{FNAME_TEST_VS_TIME}"
-    save_and_close(config.figures_dir(), title=title, fig=fig)
+    _make_and_save(use_time=False)
+    _make_and_save(use_time=True)
 
 
 def make_optim_comparison_plots(exps: List[Experiment]):
@@ -111,15 +113,16 @@ def make_optim_comparison_plots(exps: List[Experiment]):
         plot_on_axis_optimization(ax, exps, use_time)
         return fig
 
-    fig = _make_optim_comparison_plots(use_time=False)
-    base_title = get_plot_base_filename(exps[0], with_optimizer=False)
-    title = f"{base_title}_ALL_{FNAME_OPTIM_VS_ITER}"
-    save_and_close(config.figures_dir(), title=title, fig=fig)
+    subdir = get_plot_dirname(exps[0])
+    opts = get_opts_str(exps)
 
-    fig = _make_optim_comparison_plots(use_time=True)
-    base_title = get_plot_base_filename(exps[0], with_optimizer=False)
-    title = f"{base_title}_ALL_{FNAME_OPTIM_VS_TIME}"
-    save_and_close(config.figures_dir(), title=title, fig=fig)
+    def _make_and_save(use_time):
+        fig = _make_optim_comparison_plots(use_time=use_time)
+        title = f"{opts}_{FNAME_OPTIM_VS_TIME if use_time else FNAME_OPTIM_VS_ITER}"
+        save_and_close(config.figures_dir(), title=title, subdir=subdir, fig=fig)
+
+    _make_and_save(use_time=False)
+    _make_and_save(use_time=True)
 
 
 def make_all_joint_plots(exps: List[Experiment]):
@@ -131,38 +134,36 @@ def make_all_joint_plots(exps: List[Experiment]):
 def make_all_single_plots(exps: List[Experiment]):
     check_all_exps_are_on_same_problem(exps)
 
+    subdir = get_plot_dirname(exps[0])
+    opts = get_opts_str(exps)
+
     ##
     # Optim plots
 
-    base_title = get_plot_base_filename(exps[0], with_optimizer=False)
     for use_time in [False, True]:
         fig, axes = make_figure_and_axes(1, 1, 0.5, _GOLDEN_RATIO)
         plot_on_axis_optimization(axes[0][0], exps, use_time=use_time)
-        title = (
-            f"{base_title}_{FNAME_OPTIM_VS_TIME if use_time else FNAME_OPTIM_VS_ITER}"
-        )
-        save_and_close(config.figures_dir(), title=title, fig=fig)
+        title = f"{opts}_{FNAME_OPTIM_VS_TIME if use_time else FNAME_OPTIM_VS_ITER}"
+        save_and_close(config.figures_dir(), title=title, subdir=subdir, fig=fig)
 
     ##
     # Test plots
 
-    base_title = get_plot_base_filename(exps[0], with_optimizer=False)
     for use_time in [False, True]:
-        for loss_func in [nrmse, avg_l1, kl, rkl]:
+        for loss_func in [nrmse, jsd]:
             fig, axes = make_figure_and_axes(1, 1, 0.5, _GOLDEN_RATIO)
             plot_on_axis_test_error(axes[0][0], exps, loss_func, use_time=use_time)
             title = (
-                base_title
-                + f"_{(FNAME_TEST_VS_TIME if use_time else FNAME_TEST_VS_ITER)}"
+                f"{opts}_{(FNAME_TEST_VS_TIME if use_time else FNAME_TEST_VS_ITER)}"
                 + f"_{loss_func.__name__}"
             )
-            save_and_close(config.figures_dir(), title=title, fig=fig)
+            save_and_close(config.figures_dir(), title=title, subdir=subdir, fig=fig)
 
     ##
     # Scatter plots
 
     for exp in exps:
-        base_title = get_plot_base_filename(exp, with_optimizer=True)
+        base_title = get_opt_full_name(exp)
         for length_adjusted in [True, False]:
             for horizontal in [True, False]:
                 fig, axes = make_figure_and_axes(1, 1, 0.5, _GOLDEN_RATIO)
@@ -170,7 +171,9 @@ def make_all_single_plots(exps: List[Experiment]):
                     axes[0][0], exp, length_adjusted, horizontal
                 )
                 title = base_title + f"_{FNAME_ISOFORM(length_adjusted, horizontal)}"
-                save_and_close(config.figures_dir(), title=title, fig=fig)
+                save_and_close(
+                    config.figures_dir(), title=title, subdir=subdir, fig=fig
+                )
 
 
 def make_all_plots(exps: List[Experiment]):
