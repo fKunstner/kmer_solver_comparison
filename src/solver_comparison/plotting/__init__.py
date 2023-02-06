@@ -9,6 +9,7 @@ from solver_comparison.plotting.base_plots import (
     equalize_xy_axes,
     make_figure_and_axes,
     plot_multiple,
+    plot_on_ax_convergence,
     plot_on_ax_isoform_composition,
     plot_on_axis_optimization,
     plot_on_axis_test_error,
@@ -17,6 +18,8 @@ from solver_comparison.plotting.base_plots import (
     subsample,
 )
 from solver_comparison.plotting.data import (
+    FNAME_CONVERG_VS_ITER,
+    FNAME_CONVERG_VS_TIME,
     FNAME_ISOFORM,
     FNAME_OPTIM_VS_ITER,
     FNAME_OPTIM_VS_TIME,
@@ -25,6 +28,7 @@ from solver_comparison.plotting.data import (
     LOSS_LABELS,
     avg_l1,
     check_all_exps_are_on_same_problem,
+    fw_gap,
     get_opt_full_name,
     get_opts_str,
     get_plot_base_filename,
@@ -34,6 +38,7 @@ from solver_comparison.plotting.data import (
     load_dict_result,
     load_problem_cached,
     nrmse,
+    projected_grad_norm,
 )
 from solver_comparison.plotting.style import _GOLDEN_RATIO, base_style, figsize
 
@@ -90,6 +95,38 @@ def make_test_error_comparison_plots(exps: List[Experiment]):
         fig = _make_test_error_comparison(use_time=use_time)
         title = f"{opts}_{FNAME_TEST_VS_TIME if use_time else FNAME_TEST_VS_ITER}"
         save_and_close(config.figures_dir(), subdir=subdir, title=title, fig=fig)
+
+    _make_and_save(use_time=False)
+    _make_and_save(use_time=True)
+
+
+def make_convergence_criterion_plots(exps: List[Experiment]):
+    check_all_exps_are_on_same_problem(exps)
+    plt.rcParams.update(base_style)
+
+    def _make_convergence_criterion_plots(use_time=False):
+        fig, axes = make_figure_and_axes(
+            rows=1,
+            cols=3,
+            rel_width=1.0,
+            height_to_width_ratio=1.0,
+            sharex=True,
+            sharey=False,
+        )
+        plot_on_axis_optimization(axes[0][0], exps, use_time)
+        plot_on_ax_convergence(axes[0][1], exps, criterion=fw_gap, use_time=use_time)
+        plot_on_ax_convergence(
+            axes[0][2], exps, criterion=projected_grad_norm, use_time=use_time
+        )
+        return fig
+
+    subdir = get_plot_dirname(exps[0])
+    opts = get_opts_str(exps)
+
+    def _make_and_save(use_time):
+        fig = _make_convergence_criterion_plots(use_time=use_time)
+        title = f"{opts}_{FNAME_CONVERG_VS_TIME if use_time else FNAME_CONVERG_VS_ITER}"
+        save_and_close(config.figures_dir(), title=title, subdir=subdir, fig=fig)
 
     _make_and_save(use_time=False)
     _make_and_save(use_time=True)

@@ -3,14 +3,17 @@ from typing import Callable, List
 
 import numpy as np
 from kmerexpr.simulate_reads import length_adjustment_inverse
-from kmerexpr.utils import get_errors
 from matplotlib import pyplot as plt
+from scipy.special import softmax
 
 from solver_comparison.experiment import Experiment
 from solver_comparison.plotting.data import (
+    CONVERGENCE_LABELS,
     LOSS_LABELS,
+    grad_softmax_to_grad_simplex,
     load_dict_result,
     load_problem_cached,
+    projected_grad_norm,
 )
 from solver_comparison.plotting.style import (
     _GOLDEN_RATIO,
@@ -133,6 +136,41 @@ def probability_scatter(ax, xs, ys, horizontal):
 #
 
 
+def plot_on_ax_convergence(ax, exps: List[Experiment], criterion, use_time: bool):
+    xs_dict = {}
+    ys_dict = {}
+
+    for exp in exps:
+        opt_name = exp.opt.__class__.__name__
+        results_dict = load_dict_result(exp)
+        params = results_dict["xs"]
+        grads = results_dict["grads"]
+
+        if exp.prob.model_type == "Softmax":
+            params = [np.array(softmax(param)) for param in params]
+            grads = [
+                grad_softmax_to_grad_simplex(param, grad)
+                for param, grad in zip(params, grads)
+            ]
+
+        xs = results_dict["times"] if use_time else results_dict["iteration_counts"]
+        ys = [criterion(param, grad) for param, grad in zip(params, grads)]
+
+        xs_dict[opt_name] = subsample(xs, n=50)
+        ys_dict[opt_name] = subsample(ys, n=50)
+
+    plot_multiple(
+        ax,
+        xs_dict=xs_dict,
+        ys_dict=ys_dict,
+        markers=[""] * len(exps),
+        logplot=True,
+    )
+
+    ax.set_xlabel("Time" if use_time else "Iteration")
+    ax.set_title(CONVERGENCE_LABELS[criterion])
+
+
 def plot_on_ax_isoform_composition(
     ax, exp: Experiment, length_adjusted: bool = True, horizontal: bool = False
 ):
@@ -236,7 +274,7 @@ def plot_on_axis_optimization(ax, exps: List[Experiment], use_time: bool = False
     ys_dict = {}
     for exp in exps:
         results_dict = load_dict_result(exp)
-        ys = -np.array(results_dict["loss_records"])
+        ys = -np.array(results_dict["objs"])
 
         if use_time:
             xs = results_dict["times"]

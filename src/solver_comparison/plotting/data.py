@@ -4,6 +4,7 @@ from typing import List
 
 import numpy as np
 from kmerexpr.utils import load_lengths
+from scipy.special import softmax
 from scipy.stats import entropy
 
 from solver_comparison.experiment import Experiment
@@ -15,15 +16,10 @@ def convert_summary_to_dict_results(summary):
     dict_results = {
         "x": summary["prob_end"],
         "xs": summary["probs"],
+        "grads": summary["grads"],
         "times": summary["times"],
-        # Todo: "Loss" is inaccurate, it's an objective and higher is better
-        # Requires a fix in kmerexpr
-        "loss_records": summary["objs"],
+        "objs": summary["objs"],
         "iteration_counts": summary["iters"],
-        "grads_l0": summary["grads_l0"],
-        "grads_l1": summary["grads_l1"],
-        "grads_l2": summary["grads_l2"],
-        "grads_linf": summary["grads_linf"],
     }
     return dict_results
 
@@ -102,6 +98,10 @@ def load_problem_cached(prob: Problem):
     return simulation_dict, lengths
 
 
+##
+# Functions to evaluate test error
+
+
 def nrmse(psis, psi_true):
     """Normalized Root Mean-Squared Error."""
     return [np.linalg.norm(psi - psi_true, ord=2) / np.sqrt(len(psi)) for psi in psis]
@@ -124,7 +124,7 @@ def rkl(psis, psi_true):
 def jsd(psis, psi_true):
     avg_psis = [0.5 * psi + 0.5 * psi_true for psi in psis]
     return [
-        0.5 * (entropy(psi_avg, psi) + entropy(psi_avg, psi_true))
+        0.5 * (entropy(psi, psi_avg) + entropy(psi_true, psi_avg))
         for psi, psi_avg in zip(psis, avg_psis)
     ]
 
@@ -138,10 +138,37 @@ LOSS_LABELS = {
 }
 
 
+##
+# Functions to evaluate convergence
+
+
+def fw_gap(x, g):
+    """Frank-Wolfe gap assuming simplex constraints."""
+    max_grad_idx = np.argmax(g)
+    xmin = np.zeros_like(x)
+    xmin[max_grad_idx] = 1.0
+    return -np.inner(g, x - xmin)
+
+
+def projected_grad_norm(x, g):
+    """Norm of the projection of the gradient on the sum-to-one constraints."""
+    ones = np.ones_like(g)
+    mu = np.inner(g, ones)
+    return np.linalg.norm(g - mu * ones)
+
+
+CONVERGENCE_LABELS = {
+    fw_gap: "Frank-Wolfe gap",
+    projected_grad_norm: "Projected gradient norm",
+}
+
+
 FNAME_TEST_VS_TIME = "test-vs-time"
 FNAME_TEST_VS_ITER = "test-vs-iter"
 FNAME_OPTIM_VS_ITER = "optim-vs-iter"
 FNAME_OPTIM_VS_TIME = "optim-vs-time"
+FNAME_CONVERG_VS_ITER = "convergence-vs-iter"
+FNAME_CONVERG_VS_TIME = "convergence-vs-time"
 
 
 def FNAME_ISOFORM(len_adj: bool = False, diff: bool = False):
@@ -156,3 +183,19 @@ def FNAME_ISOFORM(len_adj: bool = False, diff: bool = False):
 def get_opts_str(exps: List[Experiment]):
     opts = sorted(list(set([exp.opt.__class__.__name__ for exp in exps])))
     return "[" + "+".join(opts) + "]"
+
+
+def grad_softmax_to_grad_simplex(params, grad):
+    """Convert params and gradient of softmax model to params and gradients of
+    equivalent simplex model."""
+    probs = np.array(softmax(params)).reshape((-1,))
+
+    def jac_inverse_mult(v):
+        ones = np.ones_like(probs)
+        diag_part = v / probs
+        rank_one_part = ones * np.inner(v, ones)
+        z = diag_part - rank_one_part
+        z -= np.min(z)
+        return z
+
+    return jac_inverse_mult(grad)
