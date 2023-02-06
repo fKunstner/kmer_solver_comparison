@@ -78,10 +78,7 @@ class Experiment:
             return {
                 "param": param,
                 "func": func,
-                "grad_l0": np.linalg.norm(grad, ord=0),
-                "grad_l1": np.linalg.norm(grad, ord=1),
-                "grad_l2": np.linalg.norm(grad, ord=2),
-                "grad_linf": np.linalg.norm(grad, ord=np.inf),
+                "grad": grad,
                 "time": curr_time - start_time,
             }
 
@@ -137,11 +134,8 @@ class Experiment:
                     model.probabilities(x["param"]).tolist() for x in saved_values
                 ],
                 "params": [x["param"].tolist() for x in saved_values],
+                "grads": [x["grad"].tolist() for x in saved_values],
                 "objs": [x["func"] for x in saved_values],
-                "grads_l0": [x["grad_l0"] for x in saved_values],
-                "grads_l1": [x["grad_l1"] for x in saved_values],
-                "grads_l2": [x["grad_l2"] for x in saved_values],
-                "grads_linf": [x["grad_linf"] for x in saved_values],
                 "times": [x["time"] for x in saved_values],
                 "iters": saved_iters,
             }
