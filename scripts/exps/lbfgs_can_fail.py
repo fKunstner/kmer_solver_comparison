@@ -1,13 +1,16 @@
 """Goal: Highlight setting where LBFGS fails"""
 
 from solver_comparison.exp_defs import make_experiment_for_opts
-from solver_comparison.plotting import make_convergence_criterion_plots
+from solver_comparison.plotting import (
+    make_convergence_criterion_plots,
+    make_test_error_comparison_plots,
+)
 from solver_comparison.solvers.expgrad import ExpGrad
 from solver_comparison.solvers.lbfgs import LBFGS
 from solver_comparison.solvers.mg import MG
 
 filename = "sampled_genome_0.1.fsa"
-max_iter = 10_000
+max_iter = 100_000
 K, N, L, alpha = 14, 5_000_000, 100, 0.001
 
 
@@ -34,3 +37,4 @@ if __name__ == "__main__":
             exp.run()
 
     make_convergence_criterion_plots(experiments)
+    make_test_error_comparison_plots(experiments)
