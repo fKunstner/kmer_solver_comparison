@@ -122,7 +122,20 @@ def rkl(psis, psi_true):
 
 
 def jsd(psis, psi_true):
-    avg_psis = [0.5 * psi + 0.5 * psi_true for psi in psis]
+    def avg_numerical_fix(p1, p2):
+        """Averages p1 and p2.
+
+        If the elements of p1, p2 are very close to 0, it is possible that
+        .5 p1[i] + .5 p2[i] == 0 despite one of them being > 0.
+        (eg p1[i] = 0, p2[i] = 10**-300)
+        In those cases, selects the max.
+        """
+        pa = (p1 + p2) / 2
+        pa[pa == 0] = np.maximum(p1[pa == 0], p2[pa == 0])
+        return
+
+    avg_psis = [avg_numerical_fix(psi, psi_true) for psi in psis]
+
     return [
         0.5 * (entropy(psi, psi_avg) + entropy(psi_true, psi_avg))
         for psi, psi_avg in zip(psis, avg_psis)

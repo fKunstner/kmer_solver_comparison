@@ -1,4 +1,5 @@
 import os
+import pdb
 from typing import Callable, List
 
 import numpy as np
@@ -11,6 +12,7 @@ from solver_comparison.plotting.data import (
     CONVERGENCE_LABELS,
     LOSS_LABELS,
     grad_softmax_to_grad_simplex,
+    jsd,
     load_dict_result,
     load_problem_cached,
     projected_grad_norm,
@@ -239,6 +241,9 @@ def plot_on_axis_test_error(
             xs = results_dict["times"]
         else:
             xs = results_dict["iteration_counts"]
+
+        #        if loss_func == jsd and exp.opt.__class__.__name__ == "MG":
+        #            pdb.set_trace()
 
         ys = loss_func(learned_isoform_compositions, true_isoform_composition)
 
