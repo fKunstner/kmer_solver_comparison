@@ -21,19 +21,17 @@ from functools import partial
 
 from solver_comparison.experiment import Experiment
 from solver_comparison.plotting import make_optim_comparison_plots
-from solver_comparison.problem.model import SIMPLEX, SOFTMAX
+from solver_comparison.problem import problem_settings
+from solver_comparison.problem.model import SIMPLEX
 from solver_comparison.problem.problem import Problem
 from solver_comparison.solvers.frank_wolfe import AwayFrankWolfe, FrankWolfe
 from solver_comparison.solvers.initializer import InitUniform
 from solver_comparison.solvers.mg import MG
 
-filename = "sampled_genome_0.1.fsa"
 max_iter = 100
-K, N, L, alpha = 14, 5_000_000, 100, 0.1
+filename, K, N, L, alpha = problem_settings["medium-medium"]
 
-SoftmaxProblem = partial(Problem, model_type=SOFTMAX)
 SimplexProblem = partial(Problem, model_type=SIMPLEX)
-
 
 experiments = [
     Experiment(

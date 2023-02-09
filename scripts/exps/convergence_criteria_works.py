@@ -6,14 +6,13 @@ from solver_comparison.plotting import (
     make_convergence_criterion_plots,
     make_test_error_comparison_plots,
 )
+from solver_comparison.problem import problem_settings
 from solver_comparison.solvers.expgrad import ExpGrad
 from solver_comparison.solvers.lbfgs import LBFGS
 from solver_comparison.solvers.mg import MG
 
-filename = "sampled_genome_0.1.fsa"
 max_iter = 1_000
-K, N, L, alpha = 14, 5_000_000, 100, 0.1
-
+filename, K, N, L, alpha = problem_settings["medium-medium"]
 
 experiments = make_experiment_for_opts(
     filename,
