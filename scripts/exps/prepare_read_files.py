@@ -1,11 +1,13 @@
 """Creates read files for the problems in exps."""
 
+from tqdm import tqdm
+
 from solver_comparison.problem import problem_settings
 from solver_comparison.problem.model import SOFTMAX
 from solver_comparison.problem.problem import Problem
 
 if __name__ == "__main__":
-    for name, settings in problem_settings.items():
+    for name, settings in tqdm(problem_settings.items()):
         (filename, K, N, L, alpha) = settings
         problem = Problem(
             model_type=SOFTMAX,

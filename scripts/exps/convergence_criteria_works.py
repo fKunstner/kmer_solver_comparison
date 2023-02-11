@@ -1,6 +1,8 @@
 """Goal: Show that the convergence criterions can detect when we're done"""
 
 
+from tqdm import tqdm
+
 from solver_comparison.exp_defs import make_experiment_for_opts
 from solver_comparison.plotting import (
     make_convergence_criterion_plots,
@@ -29,7 +31,7 @@ experiments = make_experiment_for_opts(
 
 
 if __name__ == "__main__":
-    for exp in experiments:
+    for exp in tqdm(experiments):
         print(exp.as_dict())
         if exp.has_already_run():
             print("stored at ", exp.hash())

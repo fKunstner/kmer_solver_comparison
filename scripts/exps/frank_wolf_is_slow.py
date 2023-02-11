@@ -19,6 +19,8 @@ We probably shouldn't use it.
 
 from functools import partial
 
+from tqdm import tqdm
+
 from solver_comparison.experiment import Experiment
 from solver_comparison.plotting import make_optim_comparison_plots
 from solver_comparison.problem import problem_settings
@@ -48,7 +50,7 @@ experiments = [
 
 
 if __name__ == "__main__":
-    for exp in experiments:
+    for exp in tqdm(experiments):
         print(exp.as_dict())
         if exp.has_already_run():
             print("stored at ", exp.hash())
