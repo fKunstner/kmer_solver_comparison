@@ -10,7 +10,7 @@ from solver_comparison.solvers.expgrad import ExpGrad
 from solver_comparison.solvers.lbfgs import LBFGS
 from solver_comparison.solvers.mg import MG
 
-max_iter = 10_000
+max_iter = 1_000
 filename, K, N, L, alpha = problem_settings["large-sparse"]
 
 
