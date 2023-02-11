@@ -74,3 +74,9 @@ class Problem:
                 self.alpha.__hash__(),
             ]
         )
+
+    def __str__(self):
+        return (
+            f"Problem(filename={self.filename}, "
+            f"K={self.K}, N={self.N}, L={self.L}, alpha={self.alpha})"
+        )
