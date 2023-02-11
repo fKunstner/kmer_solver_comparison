@@ -30,7 +30,7 @@ class MultinomialSimplexObjective(Objective):
         return self._func(self._psi_probabilities(param))
 
     def grad(self, param: NDArray):
-        return self._func(self._psi_probabilities(param))
+        return self._grad(self._psi_probabilities(param))
 
     def func_and_grad(self, param: NDArray):
         psi_probs = self._psi_probabilities(param)
