@@ -30,7 +30,7 @@ from solver_comparison.solvers.frank_wolfe import AwayFrankWolfe, FrankWolfe
 from solver_comparison.solvers.initializer import InitUniform
 from solver_comparison.solvers.mg import MG
 
-max_iter = 100
+max_iter = 10_000
 filename, K, N, L, alpha = problem_settings["medium-medium"]
 
 SimplexProblem = partial(Problem, model_type=SIMPLEX)
