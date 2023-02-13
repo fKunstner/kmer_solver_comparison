@@ -103,8 +103,8 @@ def load_problem_cached(prob: Problem):
 
 
 def nrmse(psis, psi_true):
-    """Normalized Root Mean-Squared Error."""
-    return [np.linalg.norm(psi - psi_true, ord=2) / np.sqrt(len(psi)) for psi in psis]
+    """Root Mean-Squared Error."""
+    return [np.sqrt(np.mean((psi - psi_true) ** 2)) for psi in psis]
 
 
 def avg_l1(psis, psi_true):
@@ -143,7 +143,7 @@ def jsd(psis, psi_true):
 
 
 LOSS_LABELS = {
-    nrmse: "RMSE",
+    nrmse: "Normalized RMSE",
     avg_l1: "Avg. L1",
     kl: r"$KL(\hat\phi | \phi^*)$",
     rkl: r"$KL(\phi^* | \hat\phi)$",
@@ -212,3 +212,10 @@ def grad_softmax_to_grad_simplex(params, grad):
         return z
 
     return jac_inverse_mult(grad)
+
+
+def algo_shortname(algo_name):
+    if "MG" in algo_name:
+        return "EM"
+    else:
+        return algo_name

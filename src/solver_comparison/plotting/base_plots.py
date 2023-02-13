@@ -11,6 +11,7 @@ from solver_comparison.experiment import Experiment
 from solver_comparison.plotting.data import (
     CONVERGENCE_LABELS,
     LOSS_LABELS,
+    algo_shortname,
     grad_softmax_to_grad_simplex,
     jsd,
     load_dict_result,
@@ -117,7 +118,7 @@ def plot_multiple(
             xs,
             result,
             marker,
-            label=algo_name,
+            label=algo_shortname(algo_name),
             lw=LINEWIDTH,
             color=color,
         )
@@ -287,8 +288,8 @@ def plot_on_axis_optimization(ax, exps: List[Experiment], use_time: bool = False
             xs = results_dict["iteration_counts"]
 
         opt_name = exp.opt.__class__.__name__
-        xs_dict[opt_name] = xs
-        ys_dict[opt_name] = ys
+        xs_dict[opt_name] = np.array(xs)
+        ys_dict[opt_name] = np.array(ys)
 
     plot_multiple(
         ax,
@@ -298,7 +299,7 @@ def plot_on_axis_optimization(ax, exps: List[Experiment], use_time: bool = False
         logplot=True,
     )
 
-    ax.set_ylabel("Loss")
+    ax.set_title("Loss")
     ax.set_xlabel("Time" if use_time else "Iteration")
     if use_time:
         ax.set_xscale("log")

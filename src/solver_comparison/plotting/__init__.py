@@ -74,7 +74,7 @@ def make_test_error_comparison_plots(exps: List[Experiment]):
         fig, axes = make_figure_and_axes(
             rows=1,
             cols=len(lossfunctions),
-            height_to_width_ratio=1.2,
+            height_to_width_ratio=1 / 1.618,
             sharex=True,
             sharey=False,
         )
@@ -107,17 +107,14 @@ def make_convergence_criterion_plots(exps: List[Experiment]):
     def _make_convergence_criterion_plots(use_time=False):
         fig, axes = make_figure_and_axes(
             rows=1,
-            cols=3,
+            cols=2,
             rel_width=1.0,
-            height_to_width_ratio=1.0,
+            height_to_width_ratio=1 / 1.618,
             sharex=True,
             sharey=False,
         )
         plot_on_axis_optimization(axes[0][0], exps, use_time)
         plot_on_ax_convergence(axes[0][1], exps, criterion=fw_gap, use_time=use_time)
-        plot_on_ax_convergence(
-            axes[0][2], exps, criterion=projected_grad_norm, use_time=use_time
-        )
         return fig
 
     subdir = get_plot_dirname(exps[0])

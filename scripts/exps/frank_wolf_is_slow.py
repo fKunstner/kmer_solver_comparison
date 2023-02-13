@@ -50,11 +50,11 @@ experiments = [
 
 
 if __name__ == "__main__":
-    for exp in tqdm(experiments):
-        print(exp.as_dict())
-        if exp.has_already_run():
-            print("stored at ", exp.hash())
-        else:
-            exp.run()
+    # for exp in tqdm(experiments):
+    #     print(exp.as_dict())
+    #     if exp.has_already_run():
+    #         print("stored at ", exp.hash())
+    #     else:
+    #         exp.run()
 
     make_optim_comparison_plots(experiments)

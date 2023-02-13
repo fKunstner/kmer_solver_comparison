@@ -3,6 +3,7 @@
 from solver_comparison.exp_defs import make_experiment_for_opts
 from solver_comparison.plotting import (
     make_convergence_criterion_plots,
+    make_scatter_comparison_plots,
     make_test_error_comparison_plots,
 )
 from solver_comparison.problem import problem_settings
@@ -34,14 +35,21 @@ experiments_per_dataset = [
 
 
 if __name__ == "__main__":
-    for experiments in experiments_per_dataset:
-        for exp in experiments:
-            print(exp.as_dict())
-            if exp.has_already_run():
-                print("stored at ", exp.hash())
-            else:
-                exp.run()
+    #    for experiments in experiments_per_dataset:
+    #        for exp in experiments:
+    #            print(exp.as_dict())
+    #            if exp.has_already_run():
+    #                print("stored at ", exp.hash())
+    #            else:
+    #                exp.run()
 
     for experiments in experiments_per_dataset:
         make_convergence_criterion_plots(experiments)
         make_test_error_comparison_plots(experiments)
+
+    for experiments in experiments_per_dataset:
+        make_scatter_comparison_plots(experiments)
+
+    for experiments in experiments_per_dataset:
+        for exp in experiments:
+            make_scatter_comparison_plots([exp])
