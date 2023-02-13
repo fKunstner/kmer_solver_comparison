@@ -40,3 +40,27 @@ def all_optims_for(filename, K, N, L, alpha, max_iter):
         ]
     ]
     return list(experiments)
+
+
+def make_experiment_for_opts(filename, K, N, L, alpha, softmax_opts, simplex_opts):
+    SoftmaxProblem = partial(Problem, model_type=SOFTMAX)
+    SimplexProblem = partial(Problem, model_type=SIMPLEX)
+    return [
+        Experiment(
+            prob=SoftmaxProblem(
+                filename=filename, K=K, N=N, L=L, alpha=alpha, beta=0.0
+            ),
+            opt=opt,
+            init=InitUniform(),
+        )
+        for opt in softmax_opts
+    ] + [
+        Experiment(
+            prob=SimplexProblem(
+                filename=filename, K=K, N=N, L=L, alpha=alpha, beta=1.0
+            ),
+            opt=opt,
+            init=InitUniform(),
+        )
+        for opt in simplex_opts
+    ]

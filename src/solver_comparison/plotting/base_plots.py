@@ -1,16 +1,22 @@
 import os
+import pdb
 from typing import Callable, List
 
 import numpy as np
 from kmerexpr.simulate_reads import length_adjustment_inverse
-from kmerexpr.utils import get_errors
 from matplotlib import pyplot as plt
+from scipy.special import softmax
 
 from solver_comparison.experiment import Experiment
 from solver_comparison.plotting.data import (
+    CONVERGENCE_LABELS,
     LOSS_LABELS,
+    algo_shortname,
+    grad_softmax_to_grad_simplex,
+    jsd,
     load_dict_result,
     load_problem_cached,
+    projected_grad_norm,
 )
 from solver_comparison.plotting.style import (
     _GOLDEN_RATIO,
@@ -55,15 +61,18 @@ def ax_xylabels(ax, x: str, y: str):
     ax.set_ylabel(y)
 
 
-def save_and_close(dir_path, title, fig=None):
+def save_and_close(dir_path, subdir, title, fig=None):
     if fig is None:
         fig = plt.gcf()
 
+    if subdir is not None:
+        dir_path = os.path.join(dir_path, subdir)
+
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
-    file_path = os.path.join(dir_path, title + ".pdf")
-    fig.savefig(file_path, bbox_inches = 'tight', pad_inches = 0)
-    print("Saved plot ", file_path)
+    fig.savefig(os.path.join(dir_path, title + ".pdf"))
+    fig.savefig(os.path.join(dir_path, title + ".png"), dpi=600)
+    print("Saved plot ", os.path.join(dir_path, title))
     plt.close(fig)
 
 
@@ -109,7 +118,7 @@ def plot_multiple(
             xs,
             result,
             marker,
-            label=algo_name,
+            label=algo_shortname(algo_name),
             lw=LINEWIDTH,
             color=color,
         )
@@ -128,6 +137,41 @@ def probability_scatter(ax, xs, ys, horizontal):
 
 ##
 #
+
+
+def plot_on_ax_convergence(ax, exps: List[Experiment], criterion, use_time: bool):
+    xs_dict = {}
+    ys_dict = {}
+
+    for exp in exps:
+        opt_name = exp.opt.__class__.__name__
+        results_dict = load_dict_result(exp)
+        params = results_dict["xs"]
+        grads = results_dict["grads"]
+
+        if exp.prob.model_type == "Softmax":
+            params = [np.array(softmax(param)) for param in params]
+            grads = [
+                grad_softmax_to_grad_simplex(param, grad)
+                for param, grad in zip(params, grads)
+            ]
+
+        xs = results_dict["times"] if use_time else results_dict["iteration_counts"]
+        ys = [criterion(param, grad) for param, grad in zip(params, grads)]
+
+        xs_dict[opt_name] = subsample(xs, n=50)
+        ys_dict[opt_name] = subsample(ys, n=50)
+
+    plot_multiple(
+        ax,
+        xs_dict=xs_dict,
+        ys_dict=ys_dict,
+        markers=[""] * len(exps),
+        logplot=True,
+    )
+
+    ax.set_xlabel("Time" if use_time else "Iteration")
+    ax.set_title(CONVERGENCE_LABELS[criterion])
 
 
 def plot_on_ax_isoform_composition(
@@ -199,6 +243,9 @@ def plot_on_axis_test_error(
         else:
             xs = results_dict["iteration_counts"]
 
+        #        if loss_func == jsd and exp.opt.__class__.__name__ == "MG":
+        #            pdb.set_trace()
+
         ys = loss_func(learned_isoform_compositions, true_isoform_composition)
 
         xs_dict[opt_name] = subsample(xs, n=50)
@@ -233,7 +280,7 @@ def plot_on_axis_optimization(ax, exps: List[Experiment], use_time: bool = False
     ys_dict = {}
     for exp in exps:
         results_dict = load_dict_result(exp)
-        ys = -np.array(results_dict["loss_records"])
+        ys = -np.array(results_dict["objs"])
 
         if use_time:
             xs = results_dict["times"]
@@ -241,8 +288,8 @@ def plot_on_axis_optimization(ax, exps: List[Experiment], use_time: bool = False
             xs = results_dict["iteration_counts"]
 
         opt_name = exp.opt.__class__.__name__
-        xs_dict[opt_name] = xs
-        ys_dict[opt_name] = ys
+        xs_dict[opt_name] = np.array(xs)
+        ys_dict[opt_name] = np.array(ys)
 
     plot_multiple(
         ax,
@@ -252,7 +299,7 @@ def plot_on_axis_optimization(ax, exps: List[Experiment], use_time: bool = False
         logplot=True,
     )
 
-    ax.set_ylabel("Loss")
+    ax.set_title("Loss")
     ax.set_xlabel("Time" if use_time else "Iteration")
     if use_time:
         ax.set_xscale("log")

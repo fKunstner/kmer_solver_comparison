@@ -1,0 +1,9 @@
+cp C:\Users\kunstner\kmer_solver_comparison\figures\GRCh38_latest_rna.fna_N100000000_L200_K14_a0.01\[ExpGrad]_isoform.png C:\Users\kunstner\workspace\kmer\overleaf\img\
+cp C:\Users\kunstner\kmer_solver_comparison\figures\GRCh38_latest_rna.fna_N100000000_L200_K14_a0.01\[ExpGrad+LBFGS+MG]_test-vs-time.pdf C:\Users\kunstner\workspace\kmer\overleaf\img\
+cp C:\Users\kunstner\kmer_solver_comparison\figures\GRCh38_latest_rna.fna_N100000000_L200_K14_a0.01\[ExpGrad+LBFGS+MG]_convergence-vs-time.pdf C:\Users\kunstner\workspace\kmer\overleaf\img\
+cp C:\Users\kunstner\kmer_solver_comparison\figures\GRCh38_latest_rna.fna_N100000000_L200_K14_a0.1\[ExpGrad]_isoform.png C:\Users\kunstner\workspace\kmer\overleaf\img\
+cp C:\Users\kunstner\kmer_solver_comparison\figures\GRCh38_latest_rna.fna_N100000000_L200_K14_a0.1\[ExpGrad+LBFGS+MG]_test-vs-time.pdf C:\Users\kunstner\workspace\kmer\overleaf\img\
+cp C:\Users\kunstner\kmer_solver_comparison\figures\GRCh38_latest_rna.fna_N100000000_L200_K14_a0.1\[ExpGrad+LBFGS+MG]_convergence-vs-time.pdf C:\Users\kunstner\workspace\kmer\overleaf\img\
+cp C:\Users\kunstner\kmer_solver_comparison\figures\GRCh38_latest_rna.fna_N100000000_L200_K14_a0.5\[ExpGrad]_isoform.png C:\Users\kunstner\workspace\kmer\overleaf\img\
+cp C:\Users\kunstner\kmer_solver_comparison\figures\GRCh38_latest_rna.fna_N100000000_L200_K14_a0.5\[ExpGrad+LBFGS+MG]_test-vs-time.pdf C:\Users\kunstner\workspace\kmer\overleaf\img\
+cp C:\Users\kunstner\kmer_solver_comparison\figures\GRCh38_latest_rna.fna_N100000000_L200_K14_a0.5\[ExpGrad+LBFGS+MG]_convergence-vs-time.pdf C:\Users\kunstner\workspace\kmer\overleaf\img\

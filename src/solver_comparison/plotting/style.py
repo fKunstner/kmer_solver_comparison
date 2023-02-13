@@ -1,5 +1,4 @@
 _GOLDEN_RATIO = (5.0**0.5 - 1.0) / 2.0
-_PAD_INCHES = 0.015
 
 palette = [
     "#377eb8",
@@ -27,7 +26,10 @@ MARKERS = [
     "<-",
 ]
 
-
+base_complexity = {
+    #    "path.simplify": True,
+    #    "path.simplify_threshold": 1,
+}
 base_fontstyle = {
     "font.size": 8,
     "axes.labelsize": 8,
@@ -40,7 +42,6 @@ base_tex = {
     "text.usetex": False,
 }
 base_fontfamily = {
-    "text.usetex": False,
     "font.sans-serif": ["Arial"],
     "font.family": "sans-serif",
 }
@@ -51,8 +52,6 @@ base_other = {
 base_layout = {
     "figure.constrained_layout.use": True,
     "figure.autolayout": False,
-    "savefig.bbox": "tight",
-    "savefig.pad_inches": _PAD_INCHES,
 }
 base_style = {
     **base_fontfamily,
@@ -60,6 +59,7 @@ base_style = {
     **base_tex,
     **base_other,
     **base_layout,
+    **base_complexity,
 }
 
 
