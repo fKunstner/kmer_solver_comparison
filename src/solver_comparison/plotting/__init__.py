@@ -68,10 +68,10 @@ def make_scatter_comparison_plots(exps: List[Experiment]):
 
 def make_test_error_comparison_plots(exps: List[Experiment]):
     def _make_test_error_comparison(use_time=False):
+        lossfunctions = [nrmse, avg_l1,  rkl]  #kl,
         fig, axes = make_figure_and_axes(
-            rows=1, cols=len(exps), height_to_width_ratio=1.2, sharex=True, sharey=False
+            rows=1, cols=len(lossfunctions), height_to_width_ratio=1.2, sharex=True, sharey=False
         )
-        lossfunctions = [nrmse, avg_l1, kl, rkl]
         for i, lossfunc in enumerate(lossfunctions):
             ax = axes[0][i]
             plot_on_axis_test_error(ax, exps, lossfunc, use_time=use_time)
@@ -83,6 +83,7 @@ def make_test_error_comparison_plots(exps: List[Experiment]):
     check_all_exps_are_on_same_problem(exps)
     plt.rcParams.update(base_style)
     base_title = get_plot_base_filename(exps[0], with_optimizer=False)
+
 
     fig = _make_test_error_comparison(use_time=False)
     title = f"{base_title}_ALL_{FNAME_TEST_VS_ITER}"

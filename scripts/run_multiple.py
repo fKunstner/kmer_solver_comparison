@@ -13,7 +13,7 @@ from solver_comparison.solvers.initializer import Initializer, InitUniform
 from solver_comparison.solvers.lbfgs import LBFGS
 from solver_comparison.solvers.mg import MG
 
-problem = "huge"
+problem = "small"
 
 if problem == "small":
     filename = "test5.fsa"

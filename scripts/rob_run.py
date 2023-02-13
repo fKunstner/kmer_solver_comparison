@@ -13,7 +13,7 @@ from solver_comparison.solvers.initializer import Initializer, InitUniform
 from solver_comparison.solvers.lbfgs import LBFGS
 from solver_comparison.solvers.mg import MG
 
-problem = "huge-dense"  
+problem = "massive-sparse"  
 
 if problem == "small":
     filename = "test5.fsa"
@@ -43,7 +43,7 @@ elif problem == "massive-sparse":
     filename = "GRCh38_latest_rna.fna"
     max_iter = 2000
     K, N, L, alpha = 14, 100000000, 200, 0.01    
-else:   
+else:     
     raise ValueError(f"Problem {problem} unknown")
 
 SoftmaxProblem = partial(Problem, model_type=SOFTMAX)

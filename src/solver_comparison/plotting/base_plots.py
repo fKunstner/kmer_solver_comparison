@@ -62,7 +62,7 @@ def save_and_close(dir_path, title, fig=None):
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
     file_path = os.path.join(dir_path, title + ".pdf")
-    fig.savefig(file_path)
+    fig.savefig(file_path, bbox_inches = 'tight', pad_inches = 0)
     print("Saved plot ", file_path)
     plt.close(fig)
 
