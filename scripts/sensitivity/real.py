@@ -11,13 +11,12 @@ Other things we need to check
 - Seeds to obtain a measure of uncertainty?
 - Optimization performance?
 """
-
-
 from tqdm import tqdm
 
 from solver_comparison.experiment import Experiment
 from solver_comparison.problem.model import SIMPLEX
 from solver_comparison.problem.problem import Problem
+from solver_comparison.progressbar import progressbar
 from solver_comparison.solvers.initializer import InitUniform
 from solver_comparison.solvers.mg import MG
 
@@ -59,5 +58,5 @@ if __name__ == "__main__":
     exp_with_different_problems = list(
         [exp for exp in experiments if exp.opt.max_iter == max_iters[0]]
     )
-    for exp in tqdm(exp_with_different_problems):
+    for exp in progressbar(exp_with_different_problems):
         exp.prob.load_model()
