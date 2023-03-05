@@ -1,6 +1,4 @@
-"""Model sensitivity experiment -- small data to test code.
-
-Starting with the small dataset (test5.fsa) to check the code
+"""Model sensitivity experiment.
 
 STEP 1: Plot test metrics as a function of
 - number of reads, from 10^5 to 10^8
@@ -24,8 +22,8 @@ from solver_comparison.solvers.initializer import InitUniform
 from solver_comparison.solvers.mg import MG
 
 filename = "GRCh38_latest_rna.fna"
-Ks = [8, 10, 12, 14]
-Ls = [50, 100, 150, 200]
+Ks = [8, 11, 14]
+Ls = [100, 150, 200]
 Ns = [10**5, 10**6, 10**7]
 alphas = [0.01, 0.1, 1.0]
 max_iters = [100, 1000, 5000]
@@ -53,9 +51,13 @@ experiments = [
 
 if __name__ == "__main__":
 
-    for exp in tqdm(experiments):
-        print(exp.as_dict())
-        if exp.has_already_run():
-            print("stored at ", exp.hash())
-        else:
-            exp.run()
+    import random
+
+    random.seed(0)
+    random.shuffle(experiments)
+
+    exp_with_different_problems = list(
+        [exp for exp in experiments if exp.opt.max_iter == max_iters[0]]
+    )
+    for exp in tqdm(exp_with_different_problems):
+        exp.prob.load_model()
