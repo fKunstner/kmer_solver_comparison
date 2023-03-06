@@ -11,9 +11,8 @@ Other things we need to check
 - Seeds to obtain a measure of uncertainty?
 - Optimization performance?
 """
-from tqdm import tqdm
-
 from solver_comparison.experiment import Experiment
+from solver_comparison.plotting import make_sensitivity_plot
 from solver_comparison.problem.model import SIMPLEX
 from solver_comparison.problem.problem import Problem
 from solver_comparison.progressbar import progressbar
@@ -55,8 +54,13 @@ if __name__ == "__main__":
     random.seed(0)
     random.shuffle(experiments)
 
-    exp_with_different_problems = list(
-        [exp for exp in experiments if exp.opt.max_iter == max_iters[0]]
+    for exp in progressbar(experiments):
+        print(exp.as_dict())
+        if exp.has_already_run():
+            print("stored at ", exp.hash())
+        else:
+            exp.run()
+
+    make_sensitivity_plot(
+        experiments, Ks=Ks, Ns=Ns, Ls=Ls, alphas=alphas, max_iters=max_iters
     )
-    for exp in progressbar(exp_with_different_problems):
-        exp.prob.load_model()
