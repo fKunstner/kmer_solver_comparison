@@ -3,6 +3,7 @@ from functools import lru_cache
 from typing import List
 
 import numpy as np
+from kmerexpr.simulate_reads import length_adjustment_inverse
 from kmerexpr.utils import load_lengths
 from scipy.special import softmax
 from scipy.stats import entropy
@@ -91,7 +92,7 @@ def check_all_exps_are_on_same_problem(experiments):
             )
 
 
-@lru_cache(maxsize=2)
+@lru_cache(maxsize=200)
 def load_problem_cached(prob: Problem):
     simulation_dict = prob.load_simulation_parameters()
     lengths = load_lengths(prob.filename, prob.N, prob.L)
@@ -219,3 +220,16 @@ def algo_shortname(algo_name):
         return "EM"
     else:
         return algo_name
+
+
+def get_error_at_end(exp, loss_func, length_adjusted=True):
+    simulation_dict, lengths = load_problem_cached(exp.prob)
+    results_dict = load_dict_result(exp)
+    if length_adjusted:
+        learned_isoform_compositions = length_adjustment_inverse(
+            results_dict["x"], lengths
+        )
+        true_isoform_composition = simulation_dict["psi"]
+        return loss_func([learned_isoform_compositions], true_isoform_composition)
+    else:
+        return loss_func([np.array(results_dict["x"])], simulation_dict["theta_true"])
