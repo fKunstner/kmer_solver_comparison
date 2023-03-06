@@ -1,5 +1,7 @@
+import pdb
 from typing import List
 
+import numpy as np
 from matplotlib import pyplot as plt
 
 from solver_comparison import config
@@ -29,6 +31,7 @@ from solver_comparison.plotting.data import (
     avg_l1,
     check_all_exps_are_on_same_problem,
     fw_gap,
+    get_error_at_end,
     get_opt_full_name,
     get_opts_str,
     get_plot_base_filename,
@@ -213,3 +216,90 @@ def make_all_single_plots(exps: List[Experiment]):
 def make_all_plots(exps: List[Experiment]):
     make_all_single_plots(exps)
     make_all_joint_plots(exps)
+
+
+def make_sensitivity_plot(exps: List[Experiment], Ks, Ls, Ns, alphas, max_iters):
+    data_filename = exps[0].prob.filename
+
+    all_on_same_data = all([exp.prob.filename == data_filename for exp in exps])
+    assert all_on_same_data
+
+    plt.rcParams.update(base_style)
+
+    lossfunctions = [nrmse, jsd]
+
+    def select(K, L, N, alpha, max_iter_):
+        selected_exps = [
+            exp
+            for exp in exps
+            if exp.prob.K == K
+            and exp.prob.N == N
+            and exp.prob.L == L
+            and exp.prob.alpha == alpha
+            and exp.opt.max_iter == max_iter_
+        ]
+        if len(selected_exps) != 1:
+            import pdb
+
+            pdb.set_trace()
+        assert len(selected_exps) == 1
+        return selected_exps[0]
+
+    def _make_sensitivity_plot(max_iter, length_adjusted, lossfunc):
+        fig, axes = make_figure_and_axes(
+            len(Ls), len(alphas), rel_width=len(alphas) / 3
+        )
+
+        for i, L in enumerate(Ls):
+            for j, alpha in enumerate(alphas):
+                ax = axes[i][j]
+
+                for K in Ks:
+                    errors_vs_ns = [
+                        get_error_at_end(
+                            select(K=K, L=L, N=N, alpha=alpha, max_iter_=max_iter),
+                            lossfunc,
+                            length_adjusted=length_adjusted,
+                        )
+                        for N in Ns
+                    ]
+
+                    ax.plot(Ns, errors_vs_ns, "o-", label=K)
+
+        axes[-1][-1].legend()
+
+        for ax in [ax for col in axes for ax in col]:
+            ax.set_yscale("log")
+            ax.set_xscale("log")
+
+        # ymin, ymax = np.inf, -np.inf
+        # for ax in [ax for col in axes for ax in col]:
+        #     ymin = min(ymin, ax.get_ylim()[0])
+        #     ymax = max(ymax, ax.get_ylim()[1])
+        # for ax in [ax for col in axes for ax in col]:
+        #     ax.set_ylim([ymin, ymax])
+
+        for i, L in enumerate(Ls):
+            ax = axes[i][0]
+            ax.set_ylabel(f"L = {L}")
+        for j, alpha in enumerate(alphas):
+            ax = axes[0][j]
+            ax.set_title(f"$\\alpha = {alpha}$")
+
+        if length_adjusted:
+            fig.suptitle(f"{data.LOSS_LABELS[lossfunc]} (length adjusted, $\\psi$)")
+        else:
+            fig.suptitle(f"{data.LOSS_LABELS[lossfunc]} (raw, $\\theta$)")
+
+    dirname = f"sensitivity_{data_filename}_Ks={Ks}_Ls={Ls}_Ns={Ns}_alphas={alphas}"
+
+    for max_iter in max_iters:
+        for lossfunc in lossfunctions:
+            for length_adjusted in [True, False]:
+                figname = f"metric={lossfunc.__name__}_maxiter={max_iter}_lengthadjusted={length_adjusted}"
+                fig = _make_sensitivity_plot(
+                    max_iter, length_adjusted=length_adjusted, lossfunc=lossfunc
+                )
+                save_and_close(
+                    config.figures_dir(), subdir=dirname, title=figname, fig=fig
+                )

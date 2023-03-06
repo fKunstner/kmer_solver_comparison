@@ -13,22 +13,21 @@ Other things we need to check
 - Seeds to obtain a measure of uncertainty?
 - Optimization performance?
 """
-
-
 from tqdm import tqdm
 
 from solver_comparison.experiment import Experiment
+from solver_comparison.plotting import make_sensitivity_plot
 from solver_comparison.problem.model import SIMPLEX
 from solver_comparison.problem.problem import Problem
 from solver_comparison.solvers.initializer import InitUniform
 from solver_comparison.solvers.mg import MG
 
 filename = "test5.fsa"
-Ks = [8, 10, 12, 14]
-Ls = [10, 15, 20]
-Ns = [10**2, 10**3, 10**4]
+Ks = [2, 4, 8]
+Ls = [16, 18, 20]
+Ns = [10**i for i in [0, 1, 2, 3, 4, 5]]
 alphas = [0.01, 0.1, 1.0]
-max_iters = [1000]
+max_iters = [2000]
 
 experiments = [
     Experiment(
@@ -41,7 +40,7 @@ experiments = [
             alpha=alpha,
             beta=1.0,
         ),
-        opt=MG(max_iter=max_iter, tol=10**-6),
+        opt=MG(max_iter=max_iter, tol=0),
         init=InitUniform(),
     )
     for K in Ks
@@ -53,9 +52,18 @@ experiments = [
 
 if __name__ == "__main__":
 
+    import random
+
+    random.seed(0)
+    random.shuffle(experiments)
+
     for exp in tqdm(experiments):
         print(exp.as_dict())
         if exp.has_already_run():
             print("stored at ", exp.hash())
         else:
             exp.run()
+
+    make_sensitivity_plot(
+        experiments, Ks=Ks, Ns=Ns, Ls=Ls, alphas=alphas, max_iters=max_iters
+    )
