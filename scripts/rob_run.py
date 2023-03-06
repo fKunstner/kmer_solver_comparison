@@ -14,11 +14,12 @@ from solver_comparison.solvers.lbfgs import LBFGS
 from solver_comparison.solvers.mg import MG
 
 problem = "massive-sparse"  
+# problem = "small"  
 
 if problem == "small":
     filename = "test5.fsa"
-    K, N, L, alpha = 8, 100, 14, 0.1
-    max_iter = 50
+    K, N, L, alpha = 8, 100000, 14, 0.1
+    max_iter = 200
 elif problem == "medium":
     filename = "sampled_genome_0.01"
     max_iter = 100
