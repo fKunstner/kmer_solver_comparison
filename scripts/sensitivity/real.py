@@ -24,7 +24,7 @@ Ks = [8, 11, 14]
 Ls = [100, 150, 200]
 Ns = [10**5, 10**6, 10**7]
 alphas = [0.01, 0.1, 1.0]
-max_iters = [100]
+max_iters = [100, 500]
 
 experiments = [
     Experiment(
